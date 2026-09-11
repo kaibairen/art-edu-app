@@ -28,7 +28,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Authorization: Bearer {accessToken}
+      description: "Authorization: Bearer {accessToken}"
 
   schemas:
     ApiError:
@@ -671,7 +671,7 @@ paths:
             schema: { $ref: '#/components/schemas/GeneratePosterRequest' }
       responses:
         '200':
-          description: { previewUrl, templateKey }
+          description: "{ previewUrl, templateKey }"
           content:
             application/json:
               schema: { $ref: '#/components/schemas/PosterPreview' }
@@ -703,7 +703,7 @@ paths:
             schema: { $ref: '#/components/schemas/GeneratePosterRequest' }
       responses:
         '200':
-          description: { downloadUrl, templateKey }，禁止与 previewUrl 相同
+          description: "{ downloadUrl, templateKey }，禁止与 previewUrl 相同"
           content:
             application/json:
               schema: { $ref: '#/components/schemas/PosterDownload' }
