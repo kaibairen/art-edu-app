@@ -1,0 +1,53 @@
+/**
+ * 美术教培 APP design/01
+ * 管理端：import '@art-edu/tokens/tokens.css'
+ */
+:root {
+  --color-brand: #2f6fed;
+  --color-brand-pressed: #2458c4;
+  --color-ink: #1a1a1a;
+  --color-ink-secondary: #5c5c5c;
+  --color-ink-tertiary: #8a8a8a;
+  --color-bg: #ffffff;
+  --color-bg-subtle: #f5f6f8;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-success: #1b8f5a;
+  --color-warning: #c47e00;
+  --color-danger: #d14343;
+
+  --brand: var(--color-brand);
+  --ink: var(--color-ink);
+  --bg: var(--color-bg);
+
+  --font-display-size: 22px;
+  --font-display-line: 30px;
+  --font-display-weight: 600;
+  --font-title-size: 17px;
+  --font-title-line: 24px;
+  --font-title-weight: 600;
+  --font-body-size: 15px;
+  --font-body-line: 22px;
+  --font-body-weight: 400;
+  --font-body-emphasis-weight: 500;
+  --font-caption-size: 13px;
+  --font-caption-line: 18px;
+  --font-caption-weight: 400;
+  --font-badge-size: 12px;
+  --font-badge-line: 16px;
+  --font-badge-weight: 500;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --radius-card: 12px;
+  --radius-control: 8px;
+  --radius-tag: 4px;
+
+  --el-color-primary: var(--color-brand);
+  --el-color-primary-dark-2: var(--color-brand-pressed);
+  --el-color-success: var(--color-success);
+  --el-color-warning: var(--color-warning);
+  --el-color-danger: var(--color-danger);
+}

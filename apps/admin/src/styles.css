@@ -1,26 +1,25 @@
-:root {
-  --bg: #f6f1e8;
-  --ink: #2b2118;
-  --brand: #c05621;
-}
-
 html,
 body,
 #app {
   margin: 0;
   height: 100%;
   font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", sans-serif;
-  color: var(--ink);
-  background: var(--bg);
+  color: var(--color-ink);
+  background: var(--color-bg-subtle);
+  font-size: var(--font-body-size);
+  line-height: var(--font-body-line);
 }
 
 .page-title {
-  margin: 0 0 16px;
-  font-size: 20px;
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-title-size);
+  line-height: var(--font-title-line);
+  font-weight: var(--font-title-weight);
+  color: var(--color-ink);
 }
 
 .toolbar {
   display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }

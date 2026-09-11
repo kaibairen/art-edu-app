@@ -1,0 +1,12 @@
+{
+  "name": "@art-edu/tokens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "美术教培 APP design/01 色板、字阶与间距 tokens",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css"
+  }
+}

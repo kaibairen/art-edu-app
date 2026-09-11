@@ -27,9 +27,11 @@
 | 管理端 | Vue 3 + TypeScript + Vite + Element Plus |
 | 移动端 | Flutter（`apps/mobile`，parent/teacher 双入口） |
 | 鉴权 | JWT + RBAC |
-| 仓库 | npm workspaces：`apps/api` `apps/admin` `packages/shared` |
+| 仓库 | npm workspaces：`apps/api` `apps/admin` `packages/shared` `packages/tokens` |
 
 Prisma 优于 TypeORM 的说明见 [docs/adr/001-orm-prisma.md](docs/adr/001-orm-prisma.md)。
+
+视觉 tokens 来自 design/01（主色 `#2F6FED`）：管理端 `import '@art-edu/tokens/tokens.css'` 或 `import { color } from '@art-edu/tokens'`；Flutter 引用 `lib/src/tokens.dart`。
 
 ## 仓库结构
 
@@ -38,6 +40,7 @@ apps/api          NestJS API、Prisma、e2e
 apps/admin        管理端
 apps/mobile       Flutter 家长/教师
 packages/shared   角色与公共类型
+packages/tokens   design/01 色板/字阶/间距（管理端 CSS+TS；Flutter 见 apps/mobile/lib/src/tokens.dart）
 docs/adr          架构决策记录
 docker-compose.yml
 .env.example
