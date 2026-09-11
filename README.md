@@ -22,7 +22,7 @@ P0（本期可验收）：
 7. 品牌 `GET/PUT /admin/brand`、LOGO 上传；模板 key：`simple` | `frame` | `magazine`。
 8. 家长海报：`POST .../posters/preview` 只出预览；`POST .../posters` 出正式下载。无 LOGO → 400 `LOGO_NOT_CONFIGURED`；两 URL 必须不同。
 
-P1（US-P1-01，后端已按契约落地）：公开首页 `GET /api/v1/public/home`（未登录；`brand` + `banners` + `featuredArtworks` + `courses`，仅已发布/启用）+ 管理端 `/admin/home/banners|featured-artworks|courses`（CRUD + status + reorder；优秀作品可 `from-artworks`）。公开优秀作品卡仅 `imageUrl`/`title`/`studentDisplayName`，禁止点评与私人档案。课表 / 考勤 / 活动报名仍不做。
+P1（US-P1-01，后端已按契约落地）：公开首页 `GET /api/v1/public/home`（未登录；`brand` + `banners` + `courses` + `featuredArtworks`，仅已发布/启用）+ 管理端 `/admin/home/banners|featured-artworks|courses`（CRUD + status + reorder；优秀作品可 `from-artworks`）。公开优秀作品卡仅 `imageUrl`/`title`/`studentDisplayName`，禁止点评与私人档案。课表 / 考勤 / 活动报名仍不做。
 
 非目标（后续）：活动报名完整流程、推送、语音点评、短视频、数据导出、支付。
 

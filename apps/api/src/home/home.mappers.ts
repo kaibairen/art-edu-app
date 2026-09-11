@@ -47,8 +47,8 @@ export function toPublicHome(params: {
   orgName: string | null;
   logoUrl: string | null;
   banners: HomeBanner[];
-  featuredArtworks: HomeFeaturedArtwork[];
   courses: HomeCourse[];
+  featuredArtworks: HomeFeaturedArtwork[];
 }): PublicHomeDto {
   const brand: PublicHomeBrandDto = {
     orgName: params.orgName,
@@ -57,8 +57,8 @@ export function toPublicHome(params: {
   return {
     brand,
     banners: params.banners.map(toPublicBanner),
-    featuredArtworks: params.featuredArtworks.map(toPublicFeaturedArtwork),
     courses: params.courses.map(toPublicCourse),
+    featuredArtworks: params.featuredArtworks.map(toPublicFeaturedArtwork),
   };
 }
 

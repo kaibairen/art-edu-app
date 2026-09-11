@@ -162,7 +162,6 @@ export const EXAMPLE_PUBLIC_HOME: PublicHome = {
       sortOrder: 0,
     },
   ],
-  featuredArtworks: [EXAMPLE_PUBLIC_FEATURED_ARTWORK],
   courses: [
     {
       id: 'course-1',
@@ -171,4 +170,5 @@ export const EXAMPLE_PUBLIC_HOME: PublicHome = {
       coverUrl: null,
     },
   ],
+  featuredArtworks: [EXAMPLE_PUBLIC_FEATURED_ARTWORK],
 };

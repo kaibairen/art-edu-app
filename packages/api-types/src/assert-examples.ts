@@ -33,6 +33,7 @@ import {
   COURSE_SUMMARY_MAX_LENGTH,
   P1_HOME_PATHS,
   PUBLIC_FEATURED_ARTWORK_FIELDS,
+  PUBLIC_HOME_FIELDS,
 } from './dto';
 
 assert.ok(API_ERROR_CODES.includes('CONFLICT_BINDING'));
@@ -112,6 +113,7 @@ for (const course of EXAMPLE_PUBLIC_HOME.courses) {
   assert.ok(!('body' in course));
   assert.ok(course.summary.length <= COURSE_SUMMARY_MAX_LENGTH);
 }
+assert.deepEqual(Object.keys(EXAMPLE_PUBLIC_HOME), [...PUBLIC_HOME_FIELDS]);
 assert.equal(EXAMPLE_PUBLIC_HOME.brand.logoUrl, null);
 assert.equal(P1_HOME_PATHS.publicHome, '/public/home');
 assert.equal(P1_HOME_PATHS.adminBanners, '/admin/home/banners');

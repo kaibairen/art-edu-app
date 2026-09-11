@@ -4,7 +4,10 @@ import { Role, StudentStatus, UserStatus } from '@prisma/client';
 import { execSync } from 'child_process';
 import { join } from 'path';
 import request from 'supertest';
-import { PUBLIC_FEATURED_ARTWORK_FIELDS } from '@art-edu/shared';
+import {
+  PUBLIC_FEATURED_ARTWORK_FIELDS,
+  PUBLIC_HOME_FIELDS,
+} from '@art-edu/shared';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { applyAppDefaults } from '../src/setup-app';
@@ -241,6 +244,7 @@ describe('US-P1-01 public home e2e', () => {
       .expect(200);
 
     expect(pub.body.brand.logoUrl).toBeNull();
+    expect(Object.keys(pub.body)).toEqual([...PUBLIC_HOME_FIELDS]);
     expect(pub.body.banners.map((c: { title: string }) => c.title)).toEqual([
       '启用轮播',
     ]);

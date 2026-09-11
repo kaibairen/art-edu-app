@@ -5,7 +5,7 @@
 权威契约：
 
 - P0：[`openapi-p0.yaml`](./openapi-p0.yaml)（仓库内无 `backend/openapi-p0.yaml` 时以此为准）
-- P1 US-P1-01 首页公开内容：[`openapi-p1-home.yaml`](./openapi-p1-home.yaml)（对齐 Nest 真后端；公开卡禁止 `commentText` / `teacherComment` / 点评 / 私人档案，课程无 `body`）
+- P1 US-P1-01 首页公开内容：[`openapi-p1-home.yaml`](./openapi-p1-home.yaml)（对齐 Nest 真后端；公开首页字段序 `brand` → `banners` → `courses` → `featuredArtworks`；公开卡禁止 `commentText` / `teacherComment` / 点评 / 私人档案，课程无 `body`）
 
 - Base：`/api/v1`
 - Header：`Authorization: Bearer {accessToken}`

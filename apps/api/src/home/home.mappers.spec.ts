@@ -1,4 +1,7 @@
-import { PUBLIC_FEATURED_ARTWORK_FIELDS } from '@art-edu/shared';
+import {
+  PUBLIC_FEATURED_ARTWORK_FIELDS,
+  PUBLIC_HOME_FIELDS,
+} from '@art-edu/shared';
 import {
   toPublicCourse,
   toPublicFeaturedArtwork,
@@ -64,10 +67,27 @@ describe('home public mappers', () => {
       orgName: '星光美术教室',
       logoUrl: null,
       banners: [],
-      featuredArtworks: [featuredRow],
       courses: [],
+      featuredArtworks: [featuredRow],
     });
     expect(home.brand.logoUrl).toBeNull();
     expect(home.featuredArtworks).toHaveLength(1);
+  });
+
+  it('emits public home keys in signed order', () => {
+    const home = toPublicHome({
+      orgName: '星光美术教室',
+      logoUrl: null,
+      banners: [],
+      courses: [],
+      featuredArtworks: [],
+    });
+    expect(Object.keys(home)).toEqual([...PUBLIC_HOME_FIELDS]);
+    expect(Object.keys(JSON.parse(JSON.stringify(home)))).toEqual([
+      'brand',
+      'banners',
+      'courses',
+      'featuredArtworks',
+    ]);
   });
 });

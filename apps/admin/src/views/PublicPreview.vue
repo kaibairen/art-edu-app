@@ -38,8 +38,8 @@ import { http } from '../api/http';
 const data = ref<PublicHome>({
   brand: { orgName: null, logoUrl: null },
   banners: [],
-  featuredArtworks: [],
   courses: [],
+  featuredArtworks: [],
 });
 
 onMounted(async () => {
