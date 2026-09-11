@@ -78,7 +78,7 @@ class _PosterPreviewScreenState extends State<PosterPreviewScreen> {
           const SizedBox(height: ArtEduSpace.s16),
           FilledButton(
             onPressed: previewUrl == null || downloading ? null : _download,
-            child: Text(downloading ? '生成成片中…' : '生成正式成片并进入结果页'),
+            child: Text(downloading ? '生成成片中…' : '生成并下载'),
           ),
           const SizedBox(height: ArtEduSpace.s8),
           Text(

@@ -108,12 +108,18 @@ if (!home.includes('请联系管理员分配班级')) {
   fail('教师端缺少班级空态文案');
 }
 
-// 6. 海报三分离
+// 6. 海报三分离；预览页主按钮标准文案（design/05）
 const preview = read('apps/mobile/lib/src/screens/poster_preview_screen.dart');
 const result = read('apps/mobile/lib/src/screens/poster_result_screen.dart');
 const api = read('apps/mobile/lib/src/api_client.dart');
 if (!preview.includes('previewPoster') || !preview.includes('downloadPoster')) {
   fail('预览页必须分别调用 previewPoster / downloadPoster');
+}
+if (!preview.includes("'生成并下载'")) {
+  fail('预览页主按钮标准文案必须是「生成并下载」');
+}
+if (preview.includes('生成正式成片并进入结果页')) {
+  fail('预览页主按钮不得再使用长文案「生成正式成片并进入结果页」');
 }
 if (!result.includes('downloadUrl') || result.includes('previewPoster')) {
   fail('结果页应只展示 downloadUrl');
@@ -139,6 +145,32 @@ if (!loginDart.includes('手机号') || !api.includes("'phone':")) {
 // 8. 越权文案
 if (!home.includes('无法查看') || !read('apps/mobile/lib/src/screens/timeline_screen.dart').includes('无法查看')) {
   fail('家长/教师端未处理 404「无法查看」');
+}
+
+// 9. 文档 / 示例环境变量对齐 /api/v1（勿回退旧前缀或 account 登录）
+const rootEnv = read('.env.example');
+const apiEnv = read('apps/api/.env.example');
+const adminEnv = read('apps/admin/.env.example');
+const dockerDoc = read('docs/本机Docker调试一页纸.md');
+for (const [name, text] of [
+  ['.env.example', rootEnv],
+  ['apps/api/.env.example', apiEnv],
+]) {
+  if (!/^API_PREFIX=api\/v1$/m.test(text)) {
+    fail(`${name} 的 API_PREFIX 必须是 api/v1`);
+  }
+}
+if (!adminEnv.includes('localhost:3000/api/v1')) {
+  fail('apps/admin/.env.example 默认基址必须是 /api/v1');
+}
+if (adminEnv.includes('3000/api\n') || adminEnv.includes("3000/api'")) {
+  fail('apps/admin/.env.example 仍写无 v1 的 /api');
+}
+if (!dockerDoc.includes('/api/v1/auth/login')) {
+  fail('本机 Docker 一页纸登录路径必须是 /api/v1/auth/login');
+}
+if (dockerDoc.includes('/api/auth/login') || dockerDoc.includes('"account"')) {
+  fail('本机 Docker 一页纸仍写旧 /api 前缀或 account 登录字段');
 }
 
 if (failures.length) {
