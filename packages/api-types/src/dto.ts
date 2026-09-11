@@ -69,6 +69,8 @@ export interface Account {
   role: Role;
   disabled: boolean;
   createdAt: string;
+  /** F-011 / P0.1：仅教师有意义，与 Student.className 精确匹配。 */
+  classNames?: string[];
 }
 
 export interface CreateAccountRequest {
@@ -77,6 +79,7 @@ export interface CreateAccountRequest {
   password: string;
   role: Exclude<Role, 'admin'>;
   email?: string;
+  classNames?: string[];
 }
 
 export interface UpdateAccountRequest {
@@ -84,6 +87,7 @@ export interface UpdateAccountRequest {
   email?: string | null;
   disabled?: boolean;
   password?: string;
+  classNames?: string[];
 }
 
 export interface Student {
@@ -95,6 +99,8 @@ export interface Student {
   avatarUrl: string | null;
   status: StudentStatus;
   createdAt: string;
+  /** 与教师 User.classNames[] 匹配。 */
+  className?: string | null;
 }
 
 export interface CreateStudentRequest {

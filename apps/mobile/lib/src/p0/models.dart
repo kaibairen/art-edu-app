@@ -1,5 +1,5 @@
-/// P0 /api/v1 DTO 桩。与 `packages/api-types`、`docs/contracts/openapi-p0.yaml` 对齐。
-/// 不要在现有 Screen 里引用本文件（业务页冻结）。
+/// Prism Mock DTO 桩。与 `packages/api-types` / OpenAPI 对齐。
+/// 业务 Screen 使用 `lib/src/models.dart`（真后端 displayName / title / commentText）。
 
 class ApiErrorBody {
   ApiErrorBody({required this.code, required this.message, this.details});

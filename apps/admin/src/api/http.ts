@@ -1,12 +1,16 @@
 import axios from 'axios';
+import { AdminApiError } from './errors';
 
-/** 现网一期 MVP `/api`（业务页使用）。P0 `/api/v1` Mock client 见 `./p0`，勿把业务页改过去。 */
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api';
+/** P0 真后端 `/api/v1`。Mock 仍可用 `./p0` + `VITE_P0_API_BASE_URL`。 */
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1';
+
+export const TOKEN_STORAGE_KEY = 'artedu_token';
+export const REFRESH_STORAGE_KEY = 'artedu_refresh_token';
 
 export const http = axios.create({ baseURL });
 
 http.interceptors.request.use((config) => {
-  const token = localStorage.getItem('artedu_token');
+  const token = localStorage.getItem(TOKEN_STORAGE_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -16,12 +20,19 @@ http.interceptors.request.use((config) => {
 http.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('artedu_token');
-      if (!location.pathname.includes('/login')) {
-        location.href = '/login';
-      }
+    const status = err.response?.status ?? 0;
+    const data = err.response?.data as { code?: string; message?: string; details?: unknown } | undefined;
+    if (status === 401 && !location.pathname.includes('/login')) {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(REFRESH_STORAGE_KEY);
+      location.href = '/login';
     }
-    return Promise.reject(err);
+    return Promise.reject(
+      new AdminApiError(status, {
+        code: data?.code,
+        message: data?.message ?? err.message,
+        details: data?.details,
+      }),
+    );
   },
 );

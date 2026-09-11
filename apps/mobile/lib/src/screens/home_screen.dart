@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../api_client.dart';
 import '../app.dart';
 import '../models.dart';
+import '../tokens.dart';
 import 'timeline_screen.dart';
 import 'upload_screen.dart';
 
@@ -38,8 +39,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final isTeacher = widget.role == AppRole.teacher;
     return Scaffold(
       appBar: AppBar(
-        title: Text(isTeacher ? '我负责的学员' : '我的孩子'),
+        title: Text(isTeacher ? '教师端 · 我负责的学员' : '家长端 · 我的孩子'),
         actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: ArtEduSpace.s8),
+            child: Center(
+              child: Text(
+                widget.session.displayName,
+                style: ArtEduTypography.caption,
+              ),
+            ),
+          ),
           TextButton(onPressed: widget.onLogout, child: const Text('退出')),
         ],
       ),
@@ -47,31 +57,46 @@ class _HomeScreenState extends State<HomeScreen> {
         future: future,
         builder: (context, snap) {
           if (snap.hasError) {
-            return Center(child: Text('加载失败：${snap.error}'));
+            final err = snap.error;
+            final text = err is ApiException && err.cannotView ? '无法查看' : '加载失败：${snap.error}';
+            return Center(child: Text(text));
           }
           if (!snap.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           final items = snap.data!;
           if (items.isEmpty) {
-            return const Center(child: Text('暂无绑定学员'));
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(ArtEduSpace.s24),
+                child: Text(
+                  isTeacher ? '请联系管理员分配班级' : '还没有绑定的孩子，请联系机构管理员。',
+                  textAlign: TextAlign.center,
+                  style: ArtEduTypography.body.copyWith(color: ArtEduColors.inkSecondary),
+                ),
+              ),
+            );
           }
           return ListView.builder(
             itemCount: items.length,
             itemBuilder: (context, i) {
               final s = items[i];
               return ListTile(
-                title: Text(s.name),
-                subtitle: Text(s.note ?? (isTeacher ? '点击查看作品时间线 / 上传' : '点击查看作品时间线')),
+                title: Text(s.name, style: ArtEduTypography.bodyEmphasis),
+                subtitle: Text(
+                  [
+                    if (s.className != null && s.className!.isNotEmpty) s.className,
+                    s.note,
+                    if (isTeacher) '点击查看时间线 / 上传',
+                    if (!isTeacher) '点击查看作品时间线',
+                  ].whereType<String>().where((e) => e.isNotEmpty).join(' · '),
+                ),
                 trailing: isTeacher
                     ? IconButton(
                         icon: const Icon(Icons.upload),
                         onPressed: () {
                           Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => UploadScreen(
-                              api: widget.api,
-                              student: s,
-                            ),
+                            builder: (_) => UploadScreen(api: widget.api, student: s),
                           ));
                         },
                       )

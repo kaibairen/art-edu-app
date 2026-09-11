@@ -4,7 +4,7 @@ import { useAuthStore } from './stores/auth';
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/login', component: () => import('./views/LoginView.vue') },
+    { path: '/login', component: () => import('./views/LoginView.vue'), meta: { public: true } },
     {
       path: '/',
       component: () => import('./layouts/AdminLayout.vue'),
@@ -14,8 +14,8 @@ export const router = createRouter({
         { path: 'students', component: () => import('./views/StudentsView.vue') },
         { path: 'settings', component: () => import('./views/SettingsView.vue') },
         { path: 'templates', component: () => import('./views/TemplatesView.vue') },
-        { path: 'home', component: () => import('./views/HomeContentView.vue') },
-        { path: 'preview', component: () => import('./views/PublicPreview.vue') },
+        { path: 'home', component: () => import('./views/HomeContentView.vue'), meta: { p1: true } },
+        { path: 'preview', component: () => import('./views/PublicPreview.vue'), meta: { p1: true } },
       ],
     },
   ],
@@ -23,7 +23,15 @@ export const router = createRouter({
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
-  if (to.path === '/login') {
+  if (to.meta.public) {
+    if (to.path === '/login' && auth.token) {
+      try {
+        if (!auth.user) await auth.loadMe();
+        if (auth.isAdmin) return '/users';
+      } catch {
+        auth.clearSession();
+      }
+    }
     return true;
   }
   if (!auth.token) {
@@ -33,7 +41,7 @@ router.beforeEach(async (to) => {
     try {
       await auth.loadMe();
     } catch {
-      auth.logout();
+      auth.clearSession();
       return '/login';
     }
   }

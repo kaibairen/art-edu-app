@@ -34,6 +34,7 @@ assert.deepEqual(POSTER_TEMPLATE_KEYS, ['simple', 'frame', 'magazine']);
 assert.deepEqual(STUDENT_STATUSES, ['active', 'archived']);
 assert.ok(WATERMARK_POSITIONS.includes('bottomRight'));
 assert.equal(EXAMPLE_STUDENT.status, 'active');
+assert.equal(EXAMPLE_STUDENT.className, '创意水彩班');
 
 assert.notEqual(
   EXAMPLE_POSTER_PREVIEW.previewUrl,

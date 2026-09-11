@@ -22,4 +22,12 @@ body,
   display: flex;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.page-hint {
+  color: var(--color-ink-tertiary);
+  font-size: var(--font-caption-size);
+  line-height: var(--font-caption-line);
+  margin: calc(var(--space-2) * -1) 0 var(--space-4);
 }

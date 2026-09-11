@@ -25,7 +25,7 @@ class _ArtEduAppState extends State<ArtEduApp> {
     super.initState();
     const base = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: 'http://127.0.0.1:3000/api',
+      defaultValue: 'http://127.0.0.1:3000/api/v1',
     );
     api = ApiClient(baseUrl: base);
   }
@@ -41,6 +41,7 @@ class _ArtEduAppState extends State<ArtEduApp> {
           onPrimary: ArtEduColors.bg,
           primaryContainer: ArtEduColors.brandPressed,
         ),
+        scaffoldBackgroundColor: ArtEduColors.bgSubtle,
         useMaterial3: true,
       ),
       home: session == null
