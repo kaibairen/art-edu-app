@@ -7,6 +7,7 @@ import {
 } from './error-codes';
 import type { ApiErrorBody } from './errors';
 import type {
+  Account,
   Artwork,
   ArtworkCursorPage,
   AuthUser,
@@ -23,6 +24,18 @@ export const EXAMPLE_POSTER_PREVIEW_URL =
   'http://localhost:4010/files/posters/aw-demo-simple-preview.png';
 export const EXAMPLE_POSTER_DOWNLOAD_URL =
   'http://localhost:4010/files/posters/aw-demo-simple.png';
+
+/** 对齐 Nest toAccountDto：displayName / status / classNames。 */
+export const EXAMPLE_ACCOUNT: Account = {
+  id: 'acc-teacher',
+  phone: '13800000001',
+  email: null,
+  displayName: '林老师',
+  role: 'teacher',
+  status: 'active',
+  classNames: ['创意水彩班'],
+  createdAt: '2026-09-01T00:00:00.000Z',
+};
 
 export const EXAMPLE_AUTH_USER: AuthUser = {
   id: 'acc-parent-a',

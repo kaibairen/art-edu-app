@@ -24,6 +24,10 @@ export type BindingKind = (typeof BINDING_KINDS)[number];
 export const STUDENT_STATUSES = ['active', 'archived'] as const;
 export type StudentStatus = (typeof STUDENT_STATUSES)[number];
 
+/** 账号状态。与 Nest UserStatus / PATCH /admin/accounts/{id}/status 对齐。 */
+export const USER_STATUSES = ['active', 'disabled'] as const;
+export type UserStatus = (typeof USER_STATUSES)[number];
+
 export interface AuthUser {
   id: string;
   phone: string;
@@ -64,26 +68,31 @@ export interface LogoutResponse {
 export interface Account {
   id: string;
   phone: string;
-  email: string | null;
-  name: string;
+  email?: string | null;
+  displayName: string;
   role: Role;
-  disabled: boolean;
+  status: UserStatus;
+  /** 教师负责班级；Nest 响应始终返回数组，非教师一般为 []。 */
+  classNames?: string[];
   createdAt: string;
 }
 
 export interface CreateAccountRequest {
   phone: string;
-  name: string;
+  displayName: string;
   password: string;
   role: Exclude<Role, 'admin'>;
   email?: string;
+  /** 仅教师生效；创建非教师账号时 Nest 会落成 []。 */
+  classNames?: string[];
 }
 
 export interface UpdateAccountRequest {
-  name?: string;
+  displayName?: string;
   email?: string | null;
-  disabled?: boolean;
   password?: string;
+  /** 仅教师生效。停用账号请走 PATCH /admin/accounts/{id}/status。 */
+  classNames?: string[];
 }
 
 export interface Student {
