@@ -73,10 +73,35 @@ for (const [name, text] of [
   }
 }
 
-// 5. F-011 classNames
+// 5. F-011 正式类型：classNames[] / displayName / status；停用走 PATCH .../status
 const users = read('apps/admin/src/views/UsersView.vue');
+const v1 = read('apps/admin/src/api/v1.ts');
 if (!users.includes('classNames')) {
   fail('UsersView 未编辑教师 classNames');
+}
+if (!users.includes("from '@art-edu/api-types'") || !users.includes('Account')) {
+  fail('UsersView 必须用 @art-edu/api-types 的 Account（禁止 AccountDto / 手写旧字段）');
+}
+if (users.includes('AccountDto') || users.includes('@art-edu/shared')) {
+  fail('UsersView 禁止再引用 AccountDto / @art-edu/shared 账号类型');
+}
+if (/\.disabled\b/.test(users) || /row\.name\b/.test(users) || /form\.name\b/.test(users)) {
+  fail('UsersView 禁止旧字段 name / disabled，须用 displayName / status');
+}
+if (!users.includes('displayName') || !users.includes('status')) {
+  fail('UsersView 必须使用正式字段 displayName / status');
+}
+if (!v1.includes('CreateAccountRequest') || !v1.includes('UpdateAccountRequest')) {
+  fail('v1.ts 账号创建/更新必须用正式 CreateAccountRequest / UpdateAccountRequest');
+}
+if (!v1.includes("from '@art-edu/api-types'")) {
+  fail('v1.ts 账号类型必须来自 @art-edu/api-types');
+}
+if (v1.includes('AccountDto')) {
+  fail('v1.ts 禁止 AccountDto，须用正式 Account');
+}
+if (!v1.includes('/status') || !v1.includes('UpdateAccountStatusRequest')) {
+  fail('停用必须走 PATCH .../status（UpdateAccountStatusRequest），不得写入 UpdateAccountRequest');
 }
 const home = read('apps/mobile/lib/src/screens/home_screen.dart');
 if (!home.includes('请联系管理员分配班级')) {

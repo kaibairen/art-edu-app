@@ -1,15 +1,19 @@
 import type {
-  AccountDto,
+  Account,
+  CreateAccountRequest,
+  Role,
+  UpdateAccountRequest,
+  UpdateAccountStatusRequest,
+} from '@art-edu/api-types';
+import type {
   ArtworkDto,
   AuthMe,
   AuthTokens,
   BindingDto,
   BrandConfigDto,
   Page,
-  Role,
   StudentDto,
   StudentStatus,
-  UserStatus,
   WatermarkPosition,
 } from '@art-edu/shared';
 import { http } from './http';
@@ -32,35 +36,34 @@ export async function listAccounts(params?: {
   role?: Role;
   cursor?: string;
   limit?: number;
-}): Promise<Page<AccountDto>> {
-  const { data } = await http.get<Page<AccountDto>>('/admin/accounts', { params });
+}): Promise<Page<Account>> {
+  const { data } = await http.get<Page<Account>>('/admin/accounts', { params });
   return data;
 }
 
-/** F-011：真后端 POST /admin/accounts 已接受 classNames[]（仅教师写入）。不依赖 OpenAPI。 */
-export async function createAccount(body: {
-  phone: string;
-  displayName: string;
-  password: string;
-  role: Exclude<Role, 'admin'>;
-  email?: string;
-  classNames?: string[];
-}): Promise<AccountDto> {
-  const { data } = await http.post<AccountDto>('/admin/accounts', body);
+/** F-011：正式类型 CreateAccountRequest（displayName + classNames[]）。 */
+export async function createAccount(body: CreateAccountRequest): Promise<Account> {
+  const { data } = await http.post<Account>('/admin/accounts', body);
   return data;
 }
 
-/** F-011：真后端 PATCH /admin/accounts/:id 已接受 classNames[]（仅已是教师时更新）。 */
+/** F-011：正式类型 UpdateAccountRequest。停用禁止走此接口。 */
 export async function updateAccount(
   id: string,
-  body: { displayName?: string; email?: string; password?: string; classNames?: string[] },
-): Promise<AccountDto> {
-  const { data } = await http.patch<AccountDto>(`/admin/accounts/${id}`, body);
+  body: UpdateAccountRequest,
+): Promise<Account> {
+  const { data } = await http.patch<Account>(`/admin/accounts/${id}`, body);
   return data;
 }
 
-export async function updateAccountStatus(id: string, status: UserStatus): Promise<AccountDto> {
-  const { data } = await http.patch<AccountDto>(`/admin/accounts/${id}/status`, { status });
+/** 启停账号：仅 PATCH /admin/accounts/{id}/status。 */
+export async function updateAccountStatus(
+  id: string,
+  body: UpdateAccountStatusRequest['status'] | UpdateAccountStatusRequest,
+): Promise<Account> {
+  const payload: UpdateAccountStatusRequest =
+    typeof body === 'string' ? { status: body } : body;
+  const { data } = await http.patch<Account>(`/admin/accounts/${id}/status`, payload);
   return data;
 }
 

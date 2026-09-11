@@ -81,7 +81,8 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import type { AccountDto, BindingDto, StudentDto } from '@art-edu/shared';
+import type { Account } from '@art-edu/api-types';
+import type { BindingDto, StudentDto } from '@art-edu/shared';
 import { errorMessage, toAdminApiError } from '../api/errors';
 import {
   createBinding,
@@ -96,7 +97,7 @@ import {
 
 const students = ref<StudentDto[]>([]);
 const bindings = ref<BindingDto[]>([]);
-const parents = ref<AccountDto[]>([]);
+const parents = ref<Account[]>([]);
 const studentVisible = ref(false);
 const bindVisible = ref(false);
 const bindStudentId = ref('');

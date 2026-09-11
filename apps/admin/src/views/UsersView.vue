@@ -85,7 +85,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
-import type { AccountDto, Role } from '@art-edu/shared';
+import type { Account, Role } from '@art-edu/api-types';
 import { errorMessage } from '../api/errors';
 import {
   createAccount,
@@ -95,7 +95,7 @@ import {
 } from '../api/v1';
 import { ROLE_LABEL } from '../stores/auth';
 
-const accounts = ref<AccountDto[]>([]);
+const accounts = ref<Account[]>([]);
 const roleFilter = ref<Role | ''>('');
 const visible = ref(false);
 const saving = ref(false);
@@ -139,7 +139,7 @@ function openCreate(role: 'teacher' | 'parent') {
   visible.value = true;
 }
 
-function openEdit(row: AccountDto) {
+function openEdit(row: Account) {
   editingId.value = row.id;
   form.role = row.role === 'admin' ? 'teacher' : row.role;
   form.displayName = row.displayName;
@@ -178,10 +178,10 @@ async function save() {
   }
 }
 
-async function toggleStatus(row: AccountDto) {
+async function toggleStatus(row: Account) {
   try {
     const next = row.status === 'active' ? 'disabled' : 'active';
-    await updateAccountStatus(row.id, next);
+    await updateAccountStatus(row.id, { status: next });
     ElMessage.success(next === 'disabled' ? '已停用' : '已启用');
     await load();
   } catch (e) {
