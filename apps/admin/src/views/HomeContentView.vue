@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2 class="page-title">首页内容 CRUD</h2>
+    <h2 class="page-title">首页内容</h2>
     <p class="page-hint">首页运营内容即将开放，当前仅供内部预览。</p>
     <div class="toolbar">
       <el-button type="primary" @click="openCreate">新增内容</el-button>
