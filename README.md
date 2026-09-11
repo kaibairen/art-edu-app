@@ -34,7 +34,7 @@ P0（本期可验收）：
 | 管理端 | Vue 3 + TypeScript + Vite + Element Plus（业务页尚未跟 P0 契约） |
 | 移动端 | Flutter（`apps/mobile`，parent/teacher 双入口；业务页尚未跟 P0 契约） |
 | 鉴权 | JWT + refresh token + RBAC |
-| 仓库 | npm workspaces：`apps/api` `apps/admin` `packages/shared` `packages/tokens` |
+| 仓库 | npm workspaces：`apps/api` `apps/admin` `packages/shared` `packages/tokens` `packages/api-types` |
 
 Prisma 优于 TypeORM 的说明见 [docs/adr/001-orm-prisma.md](docs/adr/001-orm-prisma.md)。
 
@@ -48,12 +48,42 @@ apps/admin        管理端（预研 UI，未跟本期契约）
 apps/mobile       Flutter 家长/教师（预研 UI，未跟本期契约）
 packages/shared   角色与 P0 公共类型
 packages/tokens   design/01 色板/字阶/间距
+packages/api-types  P0 /api/v1 DTO + 错误码（Mock 骨架）
 docs/api          契约变更
 docs/adr          架构决策记录
+docs/contracts    P0 OpenAPI（Prism / MSW）
 docs/本机Docker调试一页纸.md
 docker-compose.yml
 .env.example
 ```
+
+## P0 Mock 骨架（业务页冻结）
+
+**FRONTEND_READY 暂停。** 只允许对接 Mock 的类型与轻量 client，禁止新增/扩展业务页 CRUD UI，也不验收体验。
+
+契约：[docs/contracts/openapi-p0.yaml](docs/contracts/openapi-p0.yaml)。仓内无 `backend/openapi-p0.yaml`。
+
+- Base `http://localhost:4010/api/v1`；`Authorization: Bearer {accessToken}`
+- 成功直接返回资源；错误 `{ code, message, details? }`
+- 定稿错误码见 `API_ERROR_DEFS`：`CONFLICT_BINDING` 409「已绑定」；`CONFLICT_STUDENT_HAS_ARTWORK` 409（`Student.status` = `active` | `archived`）；登录 `ACCOUNT_DISABLED` 403，已发 Token → 401 `UNAUTHORIZED`
+- 海报拆成两个接口，URL 禁止相同：
+  - `POST /parent/artworks/{id}/posters/preview` → `{ previewUrl, templateKey }`（`previewPoster`）
+  - `POST /parent/artworks/{id}/posters` → `{ downloadUrl, templateKey }`（`downloadPoster`）
+  - Mock 示例：`…-preview.png` vs `….png`
+
+启动 Prism：
+
+```bash
+docker compose --profile mock up prism
+# 或
+npx --yes @stoplight/prism-cli@5 mock docs/contracts/openapi-p0.yaml -p 4010 -h 0.0.0.0
+```
+
+管理端 P0 client：`apps/admin/src/api/p0`（`VITE_P0_API_BASE_URL` 可切换 base）。现有视图仍走 `apps/admin/src/api/http.ts` + `VITE_API_BASE_URL`。
+
+移动端桩：`apps/mobile/lib/src/p0/`，接法见 [apps/mobile/README.md](apps/mobile/README.md)。不要改现有 Screen。
+
+更完整的 Prism / MSW 说明：[docs/contracts/README.md](docs/contracts/README.md)。
 
 ## 本地启动
 
@@ -141,11 +171,13 @@ Swagger：<http://localhost:3000/api/v1/docs>
 | `STORAGE_LOCAL_DIR` / `STORAGE_PUBLIC_BASE_URL` | 本地存储与对外 URL |
 | `S3_ENDPOINT` `S3_BUCKET` `S3_ACCESS_KEY` `S3_SECRET_KEY` | S3/MinIO |
 | `VITE_API_BASE_URL` | 管理端 API 前缀（预研 UI 仍可能指向旧路径） |
+| `VITE_P0_API_BASE_URL` | P0 Mock client 前缀（业务页冻结，勿改现有视图去接） |
 
 ## 测试
 
 ```bash
 npm run test:api    # 模板 / 分页 / 错误码 / 班级匹配
+npm run test:p0-types  # P0 api-types 示例断言（Mock 骨架）
 # 默认连 artedu_test，避免清空演示库；请先创建该库或自行设置 DATABASE_URL
 createdb -U artedu artedu_test 2>/dev/null || true
 npm run test:e2e    # 登录、越权 404、绑定/删除 409、无 LOGO 400、预览/下载分端点、儿童数组

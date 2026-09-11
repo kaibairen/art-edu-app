@@ -33,6 +33,17 @@ services:
     profiles:
       - s3
 
+  prism:
+    image: stoplight/prism:5
+    container_name: art-edu-prism
+    command: ["mock", "-h", "0.0.0.0", "-p", "4010", "/tmp/openapi-p0.yaml"]
+    volumes:
+      - ./docs/contracts/openapi-p0.yaml:/tmp/openapi-p0.yaml:ro
+    ports:
+      - "4010:4010"
+    profiles:
+      - mock
+
 volumes:
   art_edu_pg_data:
   art_edu_minio_data:

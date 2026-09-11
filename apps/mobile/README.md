@@ -43,3 +43,26 @@ flutter run -d chrome -t lib/main_parent.dart \
 家长端查询一律走 `/parent/*`，服务端按绑定强制过滤；未绑定孩子会返回 403。
 
 品牌色与字阶来自 design/01，见 `lib/src/tokens.dart`（与 `@art-edu/tokens` 对齐，主色 `#2F6FED`）。
+
+## P0 Mock client 桩（业务页冻结）
+
+FRONTEND_READY 暂停。新增的 `lib/src/p0/` **不要**接到现有 Screen。
+
+默认 base：`http://127.0.0.1:4010/api/v1`（Prism / MSW）。
+
+```bash
+# 仅验证 client 能打到 Mock，不改 UI
+# Android 模拟器：
+# --dart-define=P0_API_BASE_URL=http://10.0.2.2:4010/api/v1
+```
+
+海报是两个接口，方法分开：
+
+| Client | Path | 响应 |
+| --- | --- | --- |
+| `previewPoster` | `POST /parent/artworks/{id}/posters/preview` | `{ previewUrl, templateKey }` |
+| `downloadPoster` | `POST /parent/artworks/{id}/posters` | `{ downloadUrl, templateKey }` |
+
+两 URL 禁止相同。Mock 示例：`…-preview.png` vs `….png`。
+
+接 Mock 的步骤：起 Prism（见仓库 [docs/contracts/README.md](../../docs/contracts/README.md)），在调试代码里 `P0ApiClient(baseUrl: …)` 调用上述方法。现有 `ApiClient` / 各 Screen 保持一期 `/api`。
