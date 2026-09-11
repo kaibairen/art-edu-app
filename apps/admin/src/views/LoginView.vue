@@ -50,14 +50,16 @@ async function onSubmit() {
   min-height: 100%;
   display: grid;
   place-items: center;
-  background: linear-gradient(160deg, #f6e7d4, #f3f0ea);
+  background: var(--color-bg-subtle);
 }
 .card {
   width: 380px;
+  border-radius: var(--radius-card);
 }
 .hint,
 .demo {
-  color: #8a7460;
-  font-size: 13px;
+  color: var(--color-ink-tertiary);
+  font-size: var(--font-caption-size);
+  line-height: var(--font-caption-line);
 }
 </style>

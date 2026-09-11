@@ -41,3 +41,5 @@ flutter run -d chrome -t lib/main_parent.dart \
 ```
 
 家长端查询一律走 `/parent/*`，服务端按绑定强制过滤；未绑定孩子会返回 403。
+
+品牌色与字阶来自 design/01，见 `lib/src/tokens.dart`（与 `@art-edu/tokens` 对齐，主色 `#2F6FED`）。
