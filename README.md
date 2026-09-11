@@ -1,5 +1,7 @@
 # 美术教培 APP（一期 MVP）
 
+> 本机用 Docker / Podman 只起 Postgres（可选 MinIO）、API 与管理端仍用 npm：见 [docs/本机Docker调试一页纸.md](docs/本机Docker调试一页纸.md)。本机能调试 ≠ `FRONTEND_READY`。
+
 面向美术培训机构的三端系统：**管理端（校长/管理员）**、**教师端**、**家长端**。
 
 核心能力：学员美术作品存档、家校文字点评、机构宣传首页、作品海报生成与分享。家长只能查看已绑定孩子的数据，服务端强制隔离。
@@ -45,25 +47,30 @@ docker-compose.yml
 
 ## 本地启动
 
+一页纸（Docker **或** Podman、同一 `DATABASE_URL`、常见坑）：[docs/本机Docker调试一页纸.md](docs/本机Docker调试一页纸.md)。
+
 ### 1. 环境要求
 
 - Node.js 20+
-- PostgreSQL 16（推荐 Docker）
+- PostgreSQL 16（推荐 Docker 或 Podman；二选一即可）
 - 可选：Flutter 3.22+（跑移动端）
 - 可选：MinIO（`STORAGE_DRIVER=s3`）
 
-本机无 Docker 时，安装系统 PostgreSQL，并保证 `DATABASE_URL` 可连即可。
+本机无容器引擎时，安装系统 PostgreSQL，并保证 `DATABASE_URL` 可连即可。
 
 ### 2. 启动数据库
 
 ```bash
 docker compose up -d postgres
+# 或 Podman：
+podman compose up -d postgres
 ```
 
 使用 MinIO 时：
 
 ```bash
 docker compose --profile s3 up -d
+# 或：podman compose --profile s3 up -d
 # 将 .env 中 STORAGE_DRIVER 改为 s3，并核对 S3_* 变量
 ```
 
