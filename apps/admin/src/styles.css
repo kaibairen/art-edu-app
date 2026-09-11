@@ -1,0 +1,26 @@
+:root {
+  --bg: #f6f1e8;
+  --ink: #2b2118;
+  --brand: #c05621;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+  font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+.page-title {
+  margin: 0 0 16px;
+  font-size: 20px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}

@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  teacher
+  parent
+}
+
+model User {
+  id           String   @id @default(uuid())
+  phone        String   @unique
+  email        String?  @unique
+  passwordHash String
+  name         String
+  role         Role
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  parentBindings  ParentStudent[]
+  teacherBindings TeacherStudent[]
+  uploadedWorks   Artwork[]        @relation("TeacherArtworks")
+}
+
+model Student {
+  id        String    @id @default(uuid())
+  name      String
+  birthday  DateTime?
+  gender    String?
+  note      String?
+  avatarUrl String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  parentBindings  ParentStudent[]
+  teacherBindings TeacherStudent[]
+  artworks        Artwork[]
+}
+
+/// 家长-学员绑定（一对多：一名家长可绑定多名学员）
+model ParentStudent {
+  id        String   @id @default(uuid())
+  parentId  String
+  studentId String
+  createdAt DateTime @default(now())
+  parent    User     @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, studentId])
+  @@index([parentId])
+  @@index([studentId])
+}
+
+/// 教师负责学员
+model TeacherStudent {
+  id        String   @id @default(uuid())
+  teacherId String
+  studentId String
+  createdAt DateTime @default(now())
+  teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, studentId])
+  @@index([teacherId])
+  @@index([studentId])
+}
+
+model Artwork {
+  id              String   @id @default(uuid())
+  studentId       String
+  teacherId       String
+  imageUrl        String
+  theme           String
+  createdOn       DateTime
+  textComment     String?
+  voiceCommentUrl String?
+  videoCommentUrl String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher User     @relation("TeacherArtworks", fields: [teacherId], references: [id])
+  posters Poster[]
+
+  @@index([studentId, createdOn])
+}
+
+model Poster {
+  id          String   @id @default(uuid())
+  artworkId   String
+  templateKey String
+  imageUrl    String
+  recipe      Json
+  createdAt   DateTime @default(now())
+  artwork     Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+
+  @@index([artworkId])
+}
+
+model OrgSetting {
+  id            String   @id @default("default")
+  orgName       String
+  logoUrl       String?
+  watermarkText String
+  updatedAt     DateTime @updatedAt
+}
+
+model PosterTemplate {
+  id          String   @id
+  key         String   @unique
+  name        String
+  description String
+  enabled     Boolean  @default(true)
+  metadata    Json
+  updatedAt   DateTime @updatedAt
+}
+
+model HomeContent {
+  id        String   @id @default(uuid())
+  type      String
+  title     String
+  body      String?
+  imageUrl  String?
+  sortOrder Int      @default(0)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,38 @@
+node_modules
+dist
+build
+.env
+.env.local
+/storage
+/uploads
+apps/api/storage
+apps/api/storage-e2e
+apps/api/dist
+*.log
+.DS_Store
+coverage
+.idea
+.vscode
+*.tsbuildinfo
+
+# Flutter
+apps/mobile/.dart_tool
+apps/mobile/.packages
+apps/mobile/pubspec.lock
+apps/mobile/build
+apps/mobile/.flutter-plugins
+apps/mobile/.flutter-plugins-dependencies
+
+# Prisma
+apps/api/prisma/*.db
+apps/api/generated
+
+# TypeScript emit accidentally dropped next to sources
+packages/shared/src/*.js
+packages/shared/src/*.d.ts
+packages/shared/src/*.map
+
+# OS / tooling
+.turbo
+.cache
+tmp

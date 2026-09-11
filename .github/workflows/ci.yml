@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - cursor/art-edu-mvp-ec9b
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Values aligned with .env.example. Prisma generate (postinstall) requires
+# DATABASE_URL to be present even when it does not open a live connection.
+# e2e overrides JWT_SECRET / storage paths itself; it must hit artedu_test.
+env:
+  NODE_ENV: test
+  API_PORT: 3000
+  API_PREFIX: api
+  JWT_SECRET: change-me-in-production-art-edu-jwt
+  JWT_EXPIRES_IN: 7d
+  DATABASE_URL: postgresql://artedu:artedu@127.0.0.1:5432/artedu_test?schema=public
+  STORAGE_DRIVER: local
+  STORAGE_LOCAL_DIR: ./storage
+  STORAGE_PUBLIC_BASE_URL: http://localhost:3000/files
+  CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+  SEED_ADMIN_PHONE: "13800000000"
+  SEED_ADMIN_PASSWORD: Admin123
+  VITE_API_BASE_URL: http://localhost:3000/api
+
+jobs:
+  test-api:
+    name: test:api
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run API unit tests
+        run: npm run test:api
+
+  test-e2e:
+    name: test:e2e
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: artedu
+          POSTGRES_PASSWORD: artedu
+          POSTGRES_DB: artedu
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U artedu -d artedu"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Create artedu_test database
+        run: |
+          docker run --rm --network host \
+            -e PGPASSWORD=artedu \
+            postgres:16-alpine \
+            psql -h 127.0.0.1 -U artedu -d artedu -v ON_ERROR_STOP=1 \
+            -c "CREATE DATABASE artedu_test;"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply Prisma migrations
+        run: npm run db:migrate
+
+      - name: Run e2e tests
+        run: npm run test:e2e
