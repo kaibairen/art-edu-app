@@ -449,6 +449,10 @@ describe('Art edu API-MVP-P0-0.1 e2e', () => {
   });
 
   it('serves public home under v1 even without a logo', async () => {
+    await prisma.orgSetting.update({
+      where: { id: 'default' },
+      data: { logoUrl: null },
+    });
     const res = await request(app.getHttpServer())
       .get(`${prefix}/public/home`)
       .expect(200);
