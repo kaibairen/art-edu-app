@@ -1,8 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:art_edu_mobile/src/api_client.dart';
 import 'package:art_edu_mobile/src/app.dart';
 import 'package:art_edu_mobile/src/models.dart';
+import 'package:art_edu_mobile/src/screens/poster_preview_screen.dart';
 import 'package:art_edu_mobile/src/screens/poster_result_screen.dart';
 import 'package:flutter/material.dart';
+
+class _FakeApiClient extends ApiClient {
+  _FakeApiClient() : super(baseUrl: 'http://test');
+
+  @override
+  Future<PosterPreview> previewPoster(String artworkId, String templateKey) async {
+    return PosterPreview(
+      previewUrl: 'http://x/aw-demo-simple-preview.png',
+      templateKey: templateKey,
+    );
+  }
+}
 
 void main() {
   testWidgets('parent login screen renders', (tester) async {
@@ -16,6 +30,25 @@ void main() {
     await tester.pumpWidget(const ArtEduApp(role: AppRole.teacher));
     expect(find.text('教师端登录'), findsOneWidget);
     expect(find.textContaining('按班级查看负责学员'), findsOneWidget);
+  });
+
+  testWidgets('poster preview primary button says 生成并下载', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: PosterPreviewScreen(
+        api: _FakeApiClient(),
+        artwork: ArtworkItem(
+          id: 'aw-demo',
+          studentId: 'st-1',
+          studentName: '小明',
+          imageUrl: 'http://x/art.png',
+          thumbUrl: 'http://x/art-thumb.png',
+          createdAt: '2026-09-11',
+        ),
+        studentName: '小明',
+      ),
+    ));
+    expect(find.text('生成并下载'), findsOneWidget);
+    expect(find.text('生成正式成片并进入结果页'), findsNothing);
   });
 
   testWidgets('poster result page rejects identical urls', (tester) async {
