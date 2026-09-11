@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2 class="page-title">账号管理</h2>
-    <p class="page-hint">教师班级归属（F-011）：在教师账号上编辑 classNames，与学员 className 匹配。</p>
+    <p class="page-hint">给教师勾选负责班级，名称与学员班级一致后，教师才能看到该班学员。</p>
     <div class="toolbar">
       <el-select v-model="roleFilter" placeholder="角色" clearable style="width: 140px" @change="load">
         <el-option label="教师" value="teacher" />
@@ -24,7 +24,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="负责班级 (classNames)" min-width="200">
+      <el-table-column label="负责班级" min-width="200">
         <template #default="{ row }">
           <template v-if="row.role === 'teacher'">
             <el-tag v-for="c in row.classNames" :key="c" size="small" class="cls">{{ c }}</el-tag>

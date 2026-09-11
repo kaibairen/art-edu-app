@@ -3,10 +3,10 @@
     <h2 class="page-title">品牌 / LOGO / 水印</h2>
     <el-alert
       v-if="!brand.logoUrl"
-      title="未配置 LOGO"
+      title="尚未配置 LOGO"
       type="warning"
       :closable="false"
-      description="海报预览与下载都会返回 400 LOGO_NOT_CONFIGURED「请联系机构配置 LOGO」。请先上传。"
+      description="未上传机构 LOGO 时，家长端无法生成海报。请先在下方上传。"
       class="logo-alert"
     />
     <el-form label-width="120px" style="max-width: 640px">
@@ -24,17 +24,29 @@
       <el-form-item label="水印透明度">
         <el-slider v-model="opacityPercent" :min="0" :max="100" style="width: 280px" />
       </el-form-item>
-      <el-form-item label="当前 LOGO">
-        <el-image
-          v-if="brand.logoUrl"
-          :src="brand.logoUrl"
-          style="width: 96px; height: 96px"
-          fit="contain"
-        />
-        <span v-else class="muted">未配置</span>
-      </el-form-item>
-      <el-form-item label="上传 LOGO">
-        <input type="file" accept="image/*" @change="onLogo" />
+      <el-form-item label="机构 LOGO">
+        <div class="logo-field">
+          <button type="button" class="logo-slot" :class="{ empty: !brand.logoUrl }" @click="pickLogo">
+            <el-image
+              v-if="brand.logoUrl"
+              :src="brand.logoUrl"
+              fit="contain"
+              class="logo-preview"
+            />
+            <span v-else class="logo-placeholder">尚未配置 LOGO</span>
+          </button>
+          <div class="logo-actions">
+            <el-button @click="pickLogo">上传图片</el-button>
+            <p class="muted">点击虚框或按钮选择图片，上传后海报将带上机构标识。</p>
+          </div>
+          <input
+            ref="logoInput"
+            type="file"
+            accept="image/*"
+            class="sr-file"
+            @change="onLogo"
+          />
+        </div>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" :loading="saving" @click="save">保存品牌设置</el-button>
@@ -101,6 +113,7 @@ const form = reactive({
 });
 const saving = ref(false);
 const opacityPercent = ref(18);
+const logoInput = ref<HTMLInputElement | null>(null);
 
 const opacity = computed(() => opacityPercent.value / 100);
 
@@ -116,6 +129,10 @@ function apply(data: BrandConfigDto) {
     ? data.watermarkPosition
     : 'bottomRight';
   opacityPercent.value = Math.round((data.watermarkOpacity ?? 0.18) * 100);
+}
+
+function pickLogo() {
+  logoInput.value?.click();
 }
 
 async function load() {
@@ -164,7 +181,9 @@ async function saveTemplates() {
 }
 
 async function onLogo(ev: Event) {
-  const file = (ev.target as HTMLInputElement).files?.[0];
+  const input = ev.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
   if (!file) return;
   try {
     apply(await uploadBrandLogo(file));
@@ -182,8 +201,59 @@ onMounted(load);
   margin-bottom: var(--space-4);
   max-width: 640px;
 }
+.logo-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  position: relative;
+}
+.logo-slot {
+  width: 96px;
+  height: 96px;
+  padding: 0;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+.logo-slot.empty {
+  border-color: var(--color-ink-tertiary);
+  background: var(--color-bg-subtle);
+}
+.logo-preview {
+  width: 96px;
+  height: 96px;
+}
+.logo-placeholder {
+  color: var(--color-ink-tertiary);
+  font-size: var(--font-caption-size);
+  line-height: var(--font-caption-line);
+  text-align: center;
+  padding: 0 8px;
+}
+.logo-actions .muted,
 .muted {
   color: var(--color-ink-tertiary);
+  font-size: var(--font-caption-size);
+  line-height: var(--font-caption-line);
+}
+.logo-actions .muted {
+  margin: var(--space-2) 0 0;
+}
+.sr-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 .sub-title {
   margin: var(--space-6) 0 var(--space-3);

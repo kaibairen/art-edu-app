@@ -111,6 +111,7 @@ class _ArtEduAppState extends State<ArtEduApp> {
 
     return MaterialApp(
       title: isTeacher ? '美术教培 · 教师端' : '美术教培 · 家长端',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: ArtEduColors.brand).copyWith(
           primary: ArtEduColors.brand,

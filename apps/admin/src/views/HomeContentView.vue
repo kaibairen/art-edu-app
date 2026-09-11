@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h2 class="page-title">首页内容 CRUD</h2>
-    <p class="page-hint">非 P0 验收（P1 运营页）。接口仍挂在 /api/v1，勿当作本期交付。</p>
+    <h2 class="page-title">首页内容</h2>
+    <p class="page-hint">首页运营内容即将开放，当前仅供内部预览。</p>
     <div class="toolbar">
       <el-button type="primary" @click="openCreate">新增内容</el-button>
     </div>

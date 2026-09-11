@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../api_client.dart';
@@ -12,11 +13,13 @@ class PosterPreviewScreen extends StatefulWidget {
     required this.api,
     required this.artwork,
     required this.studentName,
+    this.showDebugApiHints = kDebugMode,
   });
 
   final ApiClient api;
   final ArtworkItem artwork;
   final String studentName;
+  final bool showDebugApiHints;
 
   @override
   State<PosterPreviewScreen> createState() => _PosterPreviewScreenState();
@@ -42,7 +45,7 @@ class _PosterPreviewScreenState extends State<PosterPreviewScreen> {
       body: ListView(
         padding: const EdgeInsets.all(ArtEduSpace.s16),
         children: [
-          Text('选择模板（切换只请求预览接口）', style: ArtEduTypography.title),
+          Text('点模板可切换预览', style: ArtEduTypography.title),
           const SizedBox(height: ArtEduSpace.s8),
           Wrap(
             spacing: ArtEduSpace.s8,
@@ -64,11 +67,13 @@ class _PosterPreviewScreenState extends State<PosterPreviewScreen> {
           if (loading && previewUrl == null) const Center(child: CircularProgressIndicator()),
           if (previewUrl != null) ...[
             Image.network(previewUrl!),
-            const SizedBox(height: ArtEduSpace.s8),
-            Text(
-              'previewUrl（仅屏幕预览，不可当下载）\n$previewUrl',
-              style: ArtEduTypography.caption.copyWith(color: ArtEduColors.inkTertiary),
-            ),
+            if (widget.showDebugApiHints) ...[
+              const SizedBox(height: ArtEduSpace.s8),
+              Text(
+                'previewUrl（仅屏幕预览，不可当下载）\n$previewUrl',
+                style: ArtEduTypography.caption.copyWith(color: ArtEduColors.inkTertiary),
+              ),
+            ],
           ],
           if (error != null)
             Padding(
@@ -80,11 +85,13 @@ class _PosterPreviewScreenState extends State<PosterPreviewScreen> {
             onPressed: previewUrl == null || downloading ? null : _download,
             child: Text(downloading ? '生成成片中…' : '生成并下载'),
           ),
-          const SizedBox(height: ArtEduSpace.s8),
-          Text(
-            '主按钮不会使用 previewUrl。下载走 POST …/posters，结果页展示 downloadUrl。',
-            style: ArtEduTypography.caption.copyWith(color: ArtEduColors.inkTertiary),
-          ),
+          if (widget.showDebugApiHints) ...[
+            const SizedBox(height: ArtEduSpace.s8),
+            Text(
+              '主按钮不会使用 previewUrl。下载走 POST …/posters，结果页展示 downloadUrl。',
+              style: ArtEduTypography.caption.copyWith(color: ArtEduColors.inkTertiary),
+            ),
+          ],
         ],
       ),
     );
@@ -113,7 +120,10 @@ class _PosterPreviewScreenState extends State<PosterPreviewScreen> {
     try {
       final data = await widget.api.downloadPoster(widget.artwork.id, templateKey);
       if (previewUrl != null && data.downloadUrl == previewUrl) {
-        throw ApiException(500, 'previewUrl 与 downloadUrl 相同，违反硬约束');
+        throw ApiException(
+          500,
+          widget.showDebugApiHints ? 'previewUrl 与 downloadUrl 相同，违反硬约束' : '生成失败，请重试',
+        );
       }
       if (!mounted) return;
       await Navigator.of(context).push(MaterialPageRoute(
@@ -122,6 +132,7 @@ class _PosterPreviewScreenState extends State<PosterPreviewScreen> {
           previewUrl: previewUrl!,
           templateKey: data.templateKey,
           studentName: widget.studentName,
+          showDebugApiHints: widget.showDebugApiHints,
         ),
       ));
     } catch (e) {

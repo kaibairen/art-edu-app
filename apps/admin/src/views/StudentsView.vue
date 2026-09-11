@@ -2,7 +2,7 @@
   <div>
     <h2 class="page-title">学员与绑定</h2>
     <p class="page-hint">
-      家长通过绑定查看孩子。教师不走绑定：填写学员班级，并在账号管理给教师分配同名 classNames。
+      家长通过绑定查看孩子。教师按班级查看学员：在学员上填写班级，并在账号管理给教师分配相同班级。
     </p>
     <div class="toolbar">
       <el-button type="primary" @click="openCreate">新建学员</el-button>
@@ -19,29 +19,43 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="绑定家长" min-width="220">
+      <el-table-column label="绑定家长" min-width="200">
         <template #default="{ row }">
-          <div v-if="parentsOf(row.id).length">
-            <div v-for="b in parentsOf(row.id)" :key="b.id" class="bind-row">
-              <span>{{ parentName(b.parentId) }}</span>
-              <el-button text type="danger" @click="unbind(b.id)">解除</el-button>
-            </div>
+          <div v-if="parentsOf(row.id).length" class="bind-names">
+            <div v-for="b in parentsOf(row.id)" :key="b.id">{{ parentName(b.parentId) }}</div>
           </div>
           <span v-else class="muted">未绑定</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="280">
+      <el-table-column label="操作" width="220" class-name="actions-col">
         <template #default="{ row }">
-          <el-button text @click="openEdit(row)">编辑</el-button>
-          <el-button text @click="openBind(row)">绑定家长</el-button>
-          <el-button
-            v-if="row.status === 'active'"
-            text
-            @click="archive(row)"
-          >
-            归档
-          </el-button>
-          <el-button text type="danger" @click="remove(row)">删除</el-button>
+          <div class="actions">
+            <el-button text @click="openEdit(row)">编辑</el-button>
+            <el-button text @click="openBind(row)">绑定家长</el-button>
+            <el-dropdown trigger="click" @command="onMore">
+              <el-button text class="more-btn" aria-label="更多">⋯</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-for="b in parentsOf(row.id)"
+                    :key="b.id"
+                    :command="{ type: 'unbind', id: b.id }"
+                  >
+                    解除 {{ parentShort(b.parentId) }}
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="row.status === 'active'"
+                    :command="{ type: 'archive', row }"
+                  >
+                    归档
+                  </el-dropdown-item>
+                  <el-dropdown-item :command="{ type: 'remove', row }" divided>
+                    删除
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -50,7 +64,7 @@
       <el-form label-width="80px">
         <el-form-item label="姓名"><el-input v-model="studentForm.name" /></el-form-item>
         <el-form-item label="班级">
-          <el-input v-model="studentForm.className" placeholder="如 创意水彩班，需与教师 classNames 一致" />
+          <el-input v-model="studentForm.className" placeholder="如 创意水彩班，需与教师负责班级一致" />
         </el-form-item>
         <el-form-item label="性别"><el-input v-model="studentForm.gender" /></el-form-item>
         <el-form-item label="备注"><el-input v-model="studentForm.note" /></el-form-item>
@@ -113,6 +127,22 @@ function parentsOf(studentId: string) {
 function parentName(parentId: string) {
   const p = parents.value.find((u) => u.id === parentId);
   return p ? `${p.displayName} ${p.phone}` : parentId;
+}
+
+function parentShort(parentId: string) {
+  const p = parents.value.find((u) => u.id === parentId);
+  return p?.displayName ?? parentId;
+}
+
+type MoreCommand =
+  | { type: 'unbind'; id: string }
+  | { type: 'archive'; row: StudentDto }
+  | { type: 'remove'; row: StudentDto };
+
+function onMore(cmd: MoreCommand) {
+  if (cmd.type === 'unbind') void unbind(cmd.id);
+  if (cmd.type === 'archive') void archive(cmd.row);
+  if (cmd.type === 'remove') void remove(cmd.row);
 }
 
 async function load() {
@@ -252,10 +282,18 @@ onMounted(load);
 .page-hint {
   margin: calc(var(--space-2) * -1) 0 var(--space-4);
 }
-.bind-row {
+.bind-names {
+  line-height: var(--font-body-line);
+}
+.actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.more-btn {
+  padding: 0 8px;
+  font-size: 18px;
+  letter-spacing: 0.04em;
 }
 </style>
