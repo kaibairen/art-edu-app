@@ -93,21 +93,29 @@ npm run db:seed
 ```
 
 ```bash
-# 终端 1  API   http://localhost:3000/api    Swagger /api/docs
+# 终端 1  API   http://localhost:3000/api/v1    Swagger /api/v1/docs
 npm run dev:api
 
 # 终端 2  管理端 http://localhost:5173
 npm run dev:admin
 ```
 
-移动端仍按 [apps/mobile/README.md](../apps/mobile/README.md)；Android 模拟器访问宿主机 API 用 `10.0.2.2`。
+登录用 `{ "phone", "password" }`（不要再发 `account`）。冒烟：
 
-## 演示账号（与 README 种子一致）
+```bash
+curl -s -X POST http://localhost:3000/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"phone":"13800000000","password":"Admin123"}'
+```
+
+移动端仍按 [apps/mobile/README.md](../apps/mobile/README.md)；Android 模拟器访问宿主机 API 用 `10.0.2.2`，前缀同样是 `/api/v1`。
+
+## 演示账号（与 README / `prisma/seed.ts` 一致）
 
 | 角色 | 手机号 | 密码 | 说明 |
 | --- | --- | --- | --- |
 | 管理员 | 13800000000 | Admin123 | 管理端 |
-| 教师 | 13800000001 | Teacher123 | 负责小明、小红 |
+| 教师 | 13800000001 | Teacher123 | `classNames=['创意水彩班']`，可见小明、小红 |
 | 家长 A | 13800000002 | Parent123 | 仅小明 |
 | 家长 B | 13800000003 | Parent123 | 仅小红 |
 
@@ -175,7 +183,7 @@ podman stop art-edu-postgres art-edu-minio
 
 1. `pg_isready` 成功，`DATABASE_URL` 指向 `artedu`。
 2. `db:migrate` + `db:seed` 无报错。
-3. `npm run dev:api` 后 Swagger 可开；管理端能用上表账号登录。
+3. `npm run dev:api` 后 Swagger 在 `/api/v1/docs`；`POST /api/v1/auth/login` 用上表手机号能拿到 `accessToken`。
 4. 需要 e2e 时另有 `artedu_test`，且未覆盖演示库。
 
 以上全过 = **本机依赖与后端调试通路可用**。前端视觉 / 业务页冻结 / 发布标准请看对应里程碑，不要在此打 `FRONTEND_READY`。
