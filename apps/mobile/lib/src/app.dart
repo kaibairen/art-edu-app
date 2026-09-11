@@ -4,6 +4,7 @@ import 'api_client.dart';
 import 'models.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
+import 'tokens.dart';
 
 enum AppRole { parent, teacher }
 
@@ -35,8 +36,10 @@ class _ArtEduAppState extends State<ArtEduApp> {
     return MaterialApp(
       title: isTeacher ? '美术教培 · 教师端' : '美术教培 · 家长端',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: isTeacher ? const Color(0xFFC05621) : const Color(0xFF1D4E89),
+        colorScheme: ColorScheme.fromSeed(seedColor: ArtEduColors.brand).copyWith(
+          primary: ArtEduColors.brand,
+          onPrimary: ArtEduColors.bg,
+          primaryContainer: ArtEduColors.brandPressed,
         ),
         useMaterial3: true,
       ),
