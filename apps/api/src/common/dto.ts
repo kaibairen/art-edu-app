@@ -193,31 +193,6 @@ export class UpdateBrandDto {
   templates?: BrandTemplatePatchDto[];
 }
 
-export class HomeContentDto {
-  @IsString()
-  type!: string;
-
-  @IsString()
-  title!: string;
-
-  @IsOptional()
-  @IsString()
-  body?: string;
-
-  @IsOptional()
-  @IsString()
-  imageUrl?: string;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  sortOrder?: number;
-
-  @IsOptional()
-  @IsBoolean()
-  published?: boolean;
-}
-
 export class CommentDto {
   @IsString()
   text!: string;

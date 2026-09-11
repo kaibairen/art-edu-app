@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { HomeController } from './home.controller';
+import { AdminHomeController } from './admin-home.controller';
 import { HomeService } from './home.service';
 import { PublicController } from './public.controller';
 
 @Module({
-  controllers: [HomeController, PublicController],
+  controllers: [AdminHomeController, PublicController],
   providers: [HomeService],
 })
 export class HomeModule {}

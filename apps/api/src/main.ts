@@ -31,7 +31,9 @@ async function bootstrap() {
 
   const swagger = new DocumentBuilder()
     .setTitle('美术教培 API')
-    .setDescription('API-MVP-P0-0.1 契约对齐：账号、作品档案、品牌与海报')
+    .setDescription(
+      'API-MVP-P0-0.1 + US-P1-01 公开首页。公开优秀作品卡禁止 commentText / 点评 / 私人档案。',
+    )
     .setVersion('0.1.0')
     .addBearerAuth()
     .build();

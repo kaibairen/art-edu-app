@@ -269,3 +269,160 @@ export const P0_PATHS = {
 } as const;
 
 export type P0ErrorCode = ApiErrorCode;
+
+/** 公开优秀作品卡允许字段。禁止 commentText / 点评 / 私人档案。 */
+export const PUBLIC_FEATURED_ARTWORK_FIELDS = [
+  'id',
+  'imageUrl',
+  'title',
+  'studentDisplayName',
+] as const;
+
+export const COURSE_SUMMARY_MAX_LENGTH = 200;
+
+export interface PublicHomeBrand {
+  orgName: string | null;
+  logoUrl: string | null;
+}
+
+export interface PublicBanner {
+  id: string;
+  imageUrl: string;
+  title: string | null;
+  subtitle: string | null;
+  linkUrl: string | null;
+  sortOrder: number;
+}
+
+/** 公开优秀作品卡。仅此四字段。 */
+export interface PublicFeaturedArtwork {
+  id: string;
+  imageUrl: string;
+  title: string;
+  studentDisplayName: string;
+}
+
+/** 公开课程。无长文 body。 */
+export interface PublicCourse {
+  id: string;
+  title: string;
+  summary: string;
+  coverUrl: string | null;
+}
+
+export interface PublicHome {
+  brand: PublicHomeBrand;
+  banners: PublicBanner[];
+  featuredArtworks: PublicFeaturedArtwork[];
+  courses: PublicCourse[];
+}
+
+export interface AdminBanner extends PublicBanner {
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminFeaturedArtwork extends PublicFeaturedArtwork {
+  sortOrder: number;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminCourse extends PublicCourse {
+  sortOrder: number;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBannerRequest {
+  imageUrl: string;
+  title?: string | null;
+  subtitle?: string | null;
+  linkUrl?: string | null;
+  sortOrder?: number;
+  enabled?: boolean;
+}
+
+export interface UpdateBannerRequest {
+  imageUrl?: string;
+  title?: string | null;
+  subtitle?: string | null;
+  linkUrl?: string | null;
+  sortOrder?: number;
+  enabled?: boolean;
+}
+
+export interface UpdateBannerStatusRequest {
+  enabled: boolean;
+}
+
+export interface UpdatePublishStatusRequest {
+  published: boolean;
+}
+
+export interface ReorderHomeItemsRequest {
+  orderedIds: string[];
+}
+
+export interface CreateFeaturedFromArtworksRequest {
+  artworkIds: string[];
+}
+
+export interface CreateFeaturedArtworkRequest {
+  imageUrl: string;
+  title: string;
+  studentDisplayName: string;
+  sortOrder?: number;
+  published?: boolean;
+}
+
+export interface UpdateFeaturedArtworkRequest {
+  imageUrl?: string;
+  title?: string;
+  studentDisplayName?: string;
+  sortOrder?: number;
+  published?: boolean;
+}
+
+export interface CreateCourseRequest {
+  title: string;
+  summary: string;
+  coverUrl?: string | null;
+  sortOrder?: number;
+  published?: boolean;
+}
+
+export interface UpdateCourseRequest {
+  title?: string;
+  summary?: string;
+  coverUrl?: string | null;
+  sortOrder?: number;
+  published?: boolean;
+}
+
+export interface HomeAdminList<T> {
+  items: T[];
+}
+
+/** US-P1-01 路径。公开读无鉴权；写接口仅 admin。 */
+export const P1_HOME_PATHS = {
+  publicHome: '/public/home',
+  publicSettings: '/public/settings',
+  adminBanners: '/admin/home/banners',
+  adminBanner: (id: string) => `/admin/home/banners/${id}`,
+  adminBannerStatus: (id: string) => `/admin/home/banners/${id}/status`,
+  adminBannersReorder: '/admin/home/banners/reorder',
+  adminFeaturedArtworks: '/admin/home/featured-artworks',
+  adminFeaturedArtwork: (id: string) => `/admin/home/featured-artworks/${id}`,
+  adminFeaturedArtworkStatus: (id: string) =>
+    `/admin/home/featured-artworks/${id}/status`,
+  adminFeaturedArtworksReorder: '/admin/home/featured-artworks/reorder',
+  adminFeaturedFromArtworks: '/admin/home/featured-artworks/from-artworks',
+  adminCourses: '/admin/home/courses',
+  adminCourse: (id: string) => `/admin/home/courses/${id}`,
+  adminCourseStatus: (id: string) => `/admin/home/courses/${id}/status`,
+  adminCoursesReorder: '/admin/home/courses/reorder',
+} as const;

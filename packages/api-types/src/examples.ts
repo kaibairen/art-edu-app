@@ -17,6 +17,8 @@ import type {
   PosterDownload,
   PosterPreview,
   Student,
+  PublicFeaturedArtwork,
+  PublicHome,
 } from './dto';
 
 /** Mock / README 必须使用不同文件名，禁止 previewUrl === downloadUrl。 */
@@ -134,4 +136,39 @@ export const EXAMPLE_CONFLICT_STUDENT_HAS_ARTWORK: ApiErrorBody = {
 export const EXAMPLE_LOGO_NOT_CONFIGURED: ApiErrorBody = {
   code: 'LOGO_NOT_CONFIGURED',
   message: '尚未配置机构 LOGO',
+};
+
+/** 公开优秀作品卡。禁止 commentText / 点评 / 私人档案字段。 */
+export const EXAMPLE_PUBLIC_FEATURED_ARTWORK: PublicFeaturedArtwork = {
+  id: 'feat-1',
+  imageUrl: 'http://localhost:4010/files/home/feat-spring-tree.jpg',
+  title: '春天的树',
+  studentDisplayName: '小明',
+};
+
+/** logoUrl 可为 null，不阻断公开首页。 */
+export const EXAMPLE_PUBLIC_HOME: PublicHome = {
+  brand: {
+    orgName: '星光美术教室',
+    logoUrl: null,
+  },
+  banners: [
+    {
+      id: 'car-1',
+      imageUrl: 'http://localhost:4010/files/home/banner-autumn.jpg',
+      title: '把每一次落笔，都变成成长档案',
+      subtitle: '作品存档 · 家校点评 · 海报分享',
+      linkUrl: null,
+      sortOrder: 0,
+    },
+  ],
+  featuredArtworks: [EXAMPLE_PUBLIC_FEATURED_ARTWORK],
+  courses: [
+    {
+      id: 'course-1',
+      title: '少儿创意水彩',
+      summary: '周六上午小班制，观察力、构图与色彩表达。',
+      coverUrl: null,
+    },
+  ],
 };
