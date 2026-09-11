@@ -1,6 +1,7 @@
 <template>
   <div>
     <h2 class="page-title">首页内容 CRUD</h2>
+    <p class="page-hint">非 P0 验收（P1 运营页）。接口仍挂在 /api/v1，勿当作本期交付。</p>
     <div class="toolbar">
       <el-button type="primary" @click="openCreate">新增内容</el-button>
     </div>
@@ -68,7 +69,7 @@ const form = reactive<Item>({
 
 async function load() {
   const { data } = await http.get('/admin/home-contents');
-  items.value = data;
+  items.value = Array.isArray(data) ? data : data.items ?? [];
 }
 
 function openCreate() {

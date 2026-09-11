@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 
 import 'models.dart';
 
-/// P0 `/api/v1` client 桩。默认指向 Prism Mock。
-/// 现有 Screen 继续用 `lib/src/api_client.dart`，不要改业务逻辑来接本类。
+/// Prism Mock `/api/v1` client 桩（字段仍偏 OpenAPI 旧名）。
+/// 业务页已改走 `lib/src/api_client.dart` 对接真后端。
 class P0ApiClient {
   P0ApiClient({
     this.baseUrl = 'http://127.0.0.1:4010/api/v1',

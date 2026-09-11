@@ -2,7 +2,7 @@
   "name": "@art-edu/api-types",
   "version": "0.1.0",
   "private": true,
-  "description": "P0 /api/v1 契约类型（Mock 骨架）。FRONTEND_READY 暂停，不含业务页。",
+  "description": "P0 /api/v1 契约类型（含 Mock 示例）。F-011 账号正式字段：displayName / status / classNames[]。",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

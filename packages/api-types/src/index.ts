@@ -48,6 +48,7 @@ export {
   type StudentStatus,
   type TokenPair,
   type UpdateAccountRequest,
+  type UpdateAccountStatusRequest,
   type UpdateBrandRequest,
   type UpdateStudentRequest,
   type UserStatus,

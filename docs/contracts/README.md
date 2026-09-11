@@ -1,6 +1,6 @@
 # P0 API Mock 联调
 
-**FRONTEND_READY 暂停。** 本目录只提供契约与 Mock 骨架，不验收业务页、不宣称前端已就绪。
+本目录提供契约与 Prism Mock。业务页已按 [FRONTEND_READY.md](../../FRONTEND_READY.md) 对接真后端 `/api/v1`；Mock 字段名仍偏 OpenAPI 旧稿，仅作对照。
 
 权威契约：[`openapi-p0.yaml`](./openapi-p0.yaml)（仓库内无 `backend/openapi-p0.yaml` 时以此为准）。
 
@@ -64,10 +64,10 @@ curl -s -X POST http://localhost:4010/api/v1/parent/artworks/aw-demo/posters \
 VITE_P0_API_BASE_URL=http://localhost:4010/api/v1
 ```
 
-现有管理端业务页仍走 `VITE_API_BASE_URL`（一期 `/api`），**不要**改那些视图去接 P0。
+管理端业务页走 `VITE_API_BASE_URL`（默认 `/api/v1`）。`VITE_P0_API_BASE_URL` 仅给 `src/api/p0` Mock client。
 
 ## MSW
 
-示例 handler 见 [`apps/admin/src/api/p0/msw.example.ts`](../../apps/admin/src/api/p0/msw.example.ts)，默认不挂到应用入口（无业务页、无体验验收）。需要时自行 `worker.start()`。
+示例 handler 见 [`apps/admin/src/api/p0/msw.example.ts`](../../apps/admin/src/api/p0/msw.example.ts)，默认不挂到应用入口。需要时自行 `worker.start()`。
 
 要点：preview / download 必须返回不同 URL，不要写 `previewUrl = downloadUrl`。

@@ -20,6 +20,7 @@
     "test": "npm run test -w @art-edu/api && npm run test:e2e -w @art-edu/api",
     "test:api": "npm run test -w @art-edu/api",
     "test:p0-types": "npm run test -w @art-edu/api-types",
+    "test:frontend-ready": "node scripts/frontend-ready-check.mjs",
     "test:e2e": "DATABASE_URL=${DATABASE_URL:-postgresql://artedu:artedu@localhost:5432/artedu_test?schema=public} npm run test:e2e -w @art-edu/api",
     "db:generate": "npm run prisma:generate -w @art-edu/api",
     "db:migrate": "npm run prisma:migrate -w @art-edu/api",

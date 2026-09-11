@@ -61,6 +61,7 @@ export const EXAMPLE_STUDENT: Student = {
   avatarUrl: null,
   status: 'active',
   createdAt: '2026-09-01T00:00:00.000Z',
+  className: '创意水彩班',
 };
 
 export const EXAMPLE_ARTWORK: Artwork = {

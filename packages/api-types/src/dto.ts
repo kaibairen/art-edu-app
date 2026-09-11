@@ -95,6 +95,10 @@ export interface UpdateAccountRequest {
   classNames?: string[];
 }
 
+export interface UpdateAccountStatusRequest {
+  status: UserStatus;
+}
+
 export interface Student {
   id: string;
   name: string;
@@ -104,6 +108,8 @@ export interface Student {
   avatarUrl: string | null;
   status: StudentStatus;
   createdAt: string;
+  /** 与教师 User.classNames[] 匹配。 */
+  className?: string | null;
 }
 
 export interface CreateStudentRequest {
@@ -252,6 +258,8 @@ export const P0_PATHS = {
     `/teacher/artworks/${artworkId}/posters`,
   adminAccounts: '/admin/accounts',
   adminAccount: (accountId: string) => `/admin/accounts/${accountId}`,
+  adminAccountStatus: (accountId: string) =>
+    `/admin/accounts/${accountId}/status`,
   adminStudents: '/admin/students',
   adminStudent: (studentId: string) => `/admin/students/${studentId}`,
   adminBindings: '/admin/bindings',

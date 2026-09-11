@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import 'models.dart';
 
+/// P0 真后端 `/api/v1` client。默认 `http://127.0.0.1:3000/api/v1`。
 class ApiClient {
   ApiClient({required this.baseUrl});
 
@@ -16,59 +17,75 @@ class ApiClient {
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
 
-  Future<AuthSession> login(String account, String password) async {
+  Future<AuthSession> login(String phone, String password) async {
     final res = await http.post(
       Uri.parse('$baseUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'account': account, 'password': password}),
+      body: jsonEncode({'phone': phone, 'password': password}),
     );
-    final data = _decode(res);
+    final data = _decode(res) as Map<String, dynamic>;
     _token = data['accessToken'] as String;
-    final user = data['user'] as Map<String, dynamic>;
     return AuthSession(
       token: _token!,
-      name: user['name'] as String,
-      role: user['role'] as String,
-      phone: user['phone'] as String,
+      refreshToken: data['refreshToken'] as String? ?? '',
+      displayName: data['displayName'] as String? ?? '',
+      role: data['role'] as String,
+      phone: phone,
+    );
+  }
+
+  Future<AuthSession> me() async {
+    final data = _decode(await http.get(Uri.parse('$baseUrl/auth/me'), headers: _headers))
+        as Map<String, dynamic>;
+    return AuthSession(
+      token: _token ?? '',
+      refreshToken: '',
+      displayName: data['displayName'] as String? ?? '',
+      role: data['role'] as String,
+      phone: data['phone'] as String? ?? '',
+      id: data['id'] as String? ?? '',
+      status: data['status'] as String? ?? 'active',
     );
   }
 
   Future<List<StudentItem>> listStudents(String role) async {
     final path = role == 'teacher' ? '/teacher/students' : '/parent/children';
-    final res = await http.get(Uri.parse('$baseUrl$path'), headers: _headers);
-    final data = _decode(res) as List<dynamic>;
-    return data
-        .map((e) => StudentItem(
-              id: e['id'] as String,
-              name: e['name'] as String,
-              note: e['note'] as String?,
-            ))
+    final data = _decode(await http.get(Uri.parse('$baseUrl$path'), headers: _headers));
+    final items = data is List
+        ? data
+        : (data as Map<String, dynamic>)['items'] as List<dynamic>? ?? [];
+    return items
+        .map((e) => StudentItem.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
   Future<List<ArtworkItem>> timeline(String role, String studentId) async {
     final path = role == 'teacher'
         ? '/teacher/students/$studentId/artworks'
-        : '/parent/children/$studentId/timeline';
-    final res = await http.get(Uri.parse('$baseUrl$path'), headers: _headers);
-    final data = _decode(res);
-    final items = (data['items'] as List<dynamic>? ?? data as List<dynamic>);
+        : '/parent/children/$studentId/artworks';
+    final data = _decode(await http.get(Uri.parse('$baseUrl$path'), headers: _headers));
+    final items = data is Map<String, dynamic>
+        ? data['items'] as List<dynamic>? ?? []
+        : data as List<dynamic>;
     return items
-        .map((e) => ArtworkItem(
-              id: e['id'] as String,
-              imageUrl: e['imageUrl'] as String,
-              theme: e['theme'] as String,
-              createdOn: e['createdOn'] as String,
-              textComment: e['textComment'] as String?,
-            ))
+        .map((e) => ArtworkItem.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<ArtworkItem> getArtwork(String role, String artworkId) async {
+    final path = role == 'teacher'
+        ? '/teacher/artworks/$artworkId'
+        : '/parent/artworks/$artworkId';
+    final data = _decode(await http.get(Uri.parse('$baseUrl$path'), headers: _headers))
+        as Map<String, dynamic>;
+    return ArtworkItem.fromJson(data);
   }
 
   Future<ArtworkItem> uploadArtwork({
     required String studentId,
-    required String theme,
-    required String createdOn,
-    String? textComment,
+    String? title,
+    String? createdAt,
+    String? courseTheme,
     required Uint8List bytes,
     required String filename,
   }) async {
@@ -79,49 +96,56 @@ class ApiClient {
     if (_token != null) {
       req.headers['Authorization'] = 'Bearer $_token';
     }
-    req.fields['theme'] = theme;
-    req.fields['createdOn'] = createdOn;
-    if (textComment != null) {
-      req.fields['textComment'] = textComment;
+    if (title != null && title.isNotEmpty) req.fields['title'] = title;
+    if (createdAt != null && createdAt.isNotEmpty) req.fields['createdAt'] = createdAt;
+    if (courseTheme != null && courseTheme.isNotEmpty) {
+      req.fields['courseTheme'] = courseTheme;
     }
     req.files.add(http.MultipartFile.fromBytes('image', bytes, filename: filename));
     final streamed = await req.send();
     final res = await http.Response.fromStream(streamed);
-    final data = _decode(res);
-    return ArtworkItem(
-      id: data['id'] as String,
-      imageUrl: data['imageUrl'] as String,
-      theme: data['theme'] as String,
-      createdOn: data['createdOn'] as String,
-      textComment: data['textComment'] as String?,
-    );
+    return ArtworkItem.fromJson(_decode(res) as Map<String, dynamic>);
   }
 
-  Future<Map<String, dynamic>> generatePoster(String role, String artworkId, String templateKey) async {
-    final path = role == 'teacher'
-        ? '/teacher/artworks/$artworkId/posters'
-        : '/parent/artworks/$artworkId/posters';
-    final res = await http.post(
-      Uri.parse('$baseUrl$path'),
+  Future<ArtworkItem> createComment(String artworkId, {required String text}) async {
+    final data = _decode(await http.post(
+      Uri.parse('$baseUrl/teacher/artworks/$artworkId/comments'),
+      headers: _headers,
+      body: jsonEncode({'text': text}),
+    )) as Map<String, dynamic>;
+    return ArtworkItem.fromJson(data);
+  }
+
+  /// 仅屏幕预览。切换模板只打本接口。禁止把 [PosterPreview.previewUrl] 当下载地址。
+  Future<PosterPreview> previewPoster(String artworkId, String templateKey) async {
+    final data = _decode(await http.post(
+      Uri.parse('$baseUrl/parent/artworks/$artworkId/posters/preview'),
       headers: _headers,
       body: jsonEncode({'templateKey': templateKey}),
-    );
-    return _decode(res);
+    )) as Map<String, dynamic>;
+    return PosterPreview.fromJson(data);
+  }
+
+  /// 正式成片。主按钮下载必须用本接口。
+  Future<PosterDownload> downloadPoster(String artworkId, String templateKey) async {
+    final data = _decode(await http.post(
+      Uri.parse('$baseUrl/parent/artworks/$artworkId/posters'),
+      headers: _headers,
+      body: jsonEncode({'templateKey': templateKey}),
+    )) as Map<String, dynamic>;
+    return PosterDownload.fromJson(data);
   }
 
   dynamic _decode(http.Response res) {
-    final body = res.body.isEmpty ? {} : jsonDecode(res.body);
+    final body = res.body.isEmpty ? <String, dynamic>{} : jsonDecode(res.body);
     if (res.statusCode >= 400) {
-      throw ApiException(res.statusCode, body is Map ? '${body['message']}' : res.body);
+      final map = body is Map<String, dynamic> ? body : <String, dynamic>{};
+      throw ApiException(
+        res.statusCode,
+        map['message'] as String? ?? res.body,
+        code: map['code'] as String?,
+      );
     }
     return body;
   }
-}
-
-class ApiException implements Exception {
-  ApiException(this.status, this.message);
-  final int status;
-  final String message;
-  @override
-  String toString() => 'ApiException($status): $message';
 }

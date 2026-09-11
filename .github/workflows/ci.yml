@@ -56,6 +56,12 @@ jobs:
       - name: Check P0 api-types examples
         run: npm run test:p0-types
 
+      - name: FRONTEND_READY hard constraints
+        run: npm run test:frontend-ready
+
+      - name: Typecheck admin
+        run: npm run build:admin
+
   test-e2e:
     name: test:e2e
     runs-on: ubuntu-latest

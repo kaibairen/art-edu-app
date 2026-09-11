@@ -1,6 +1,6 @@
 # 美术教培移动端（家长 / 教师）
 
-共用一套 Flutter 代码，通过入口文件区分角色：
+共用一套 Flutter 代码，通过入口文件区分角色（三角色壳的教师 / 家长端）：
 
 | 角色 | 入口 | 演示账号 |
 | --- | --- | --- |
@@ -8,6 +8,8 @@
 | 教师 | `lib/main_teacher.dart` | `13800000001` / `Teacher123` |
 
 也可使用默认入口并传入 `--dart-define=APP_ROLE=parent|teacher`。
+
+默认 API：`http://127.0.0.1:3000/api/v1`。登录 body 为 `{ phone, password }`。
 
 ## 首次生成本地工程文件
 
@@ -27,42 +29,34 @@ Android 模拟器访问宿主机 API 请用 `10.0.2.2`：
 
 ```bash
 flutter run -t lib/main_parent.dart \
-  --dart-define=API_BASE_URL=http://10.0.2.2:3000/api
+  --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1
 
 flutter run -t lib/main_teacher.dart \
-  --dart-define=API_BASE_URL=http://10.0.2.2:3000/api
+  --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1
 ```
 
 iOS / 桌面 / Chrome：
 
 ```bash
 flutter run -d chrome -t lib/main_parent.dart \
-  --dart-define=API_BASE_URL=http://127.0.0.1:3000/api
+  --dart-define=API_BASE_URL=http://127.0.0.1:3000/api/v1
 ```
 
-家长端查询一律走 `/parent/*`，服务端按绑定强制过滤；未绑定孩子会返回 403。
+越权读返回 **404「无法查看」**。教师无 `classNames` 时列表空态为「请联系管理员分配班级」。
 
-品牌色与字阶来自 design/01，见 `lib/src/tokens.dart`（与 `@art-edu/tokens` 对齐，主色 `#2F6FED`）。
+品牌色与字阶来自 design/01，见 `lib/src/tokens.dart`（主色 `#2F6FED`）。
 
-## P0 Mock client 桩（业务页冻结）
+## P0 海报三分离
 
-FRONTEND_READY 暂停。新增的 `lib/src/p0/` **不要**接到现有 Screen。
-
-默认 base：`http://127.0.0.1:4010/api/v1`（Prism / MSW）。
-
-```bash
-# 仅验证 client 能打到 Mock，不改 UI
-# Android 模拟器：
-# --dart-define=P0_API_BASE_URL=http://10.0.2.2:4010/api/v1
-```
-
-海报是两个接口，方法分开：
-
-| Client | Path | 响应 |
+| 页 | 行为 | 接口 |
 | --- | --- | --- |
-| `previewPoster` | `POST /parent/artworks/{id}/posters/preview` | `{ previewUrl, templateKey }` |
-| `downloadPoster` | `POST /parent/artworks/{id}/posters` | `{ downloadUrl, templateKey }` |
+| 作品详情 | 只展示作品，入口进预览 | — |
+| `PosterPreviewScreen` | 切换模板只打 preview | `POST /parent/artworks/{id}/posters/preview` → `previewUrl` |
+| 预览页主按钮 | 打 download，再进结果页 | `POST /parent/artworks/{id}/posters` → `downloadUrl` |
+| `PosterResultScreen` | 只展示正式成片 | 禁止 `previewUrl === downloadUrl` |
 
-两 URL 禁止相同。Mock 示例：`…-preview.png` vs `….png`。
+模板对外名：简约 / 画框 / 杂志。
 
-接 Mock 的步骤：起 Prism（见仓库 [docs/contracts/README.md](../../docs/contracts/README.md)），在调试代码里 `P0ApiClient(baseUrl: …)` 调用上述方法。现有 `ApiClient` / 各 Screen 保持一期 `/api`。
+## Mock 桩
+
+`lib/src/p0/` 仍指向 Prism（旧字段名）。业务 Screen 不引用它。

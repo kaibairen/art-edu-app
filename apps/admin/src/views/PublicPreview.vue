@@ -1,6 +1,7 @@
 <template>
   <div>
     <h2 class="page-title">公开首页预览</h2>
+    <p class="page-hint">非 P0 验收。GET /api/v1/public/home。</p>
     <el-card>
       <div class="hero">
         <el-image v-if="data.settings?.logoUrl" :src="data.settings.logoUrl" class="logo" />

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api_client.dart';
 import '../models.dart';
+import '../tokens.dart';
 import 'artwork_screen.dart';
 
 class TimelineScreen extends StatefulWidget {
@@ -37,7 +38,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
         future: future,
         builder: (context, snap) {
           if (snap.hasError) {
-            return Center(child: Text('无法加载：${snap.error}'));
+            final err = snap.error;
+            final text = err is ApiException && err.cannotView ? '无法查看' : '无法加载：${snap.error}';
+            return Center(child: Text(text));
           }
           if (!snap.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -51,12 +54,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
             separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (context, i) {
               final a = items[i];
+              final thumb = a.thumbUrl.isNotEmpty ? a.thumbUrl : a.imageUrl;
               return ListTile(
-                leading: a.imageUrl.isEmpty
+                leading: thumb.isEmpty
                     ? const Icon(Icons.image)
-                    : Image.network(a.imageUrl, width: 56, height: 56, fit: BoxFit.cover),
-                title: Text(a.theme),
-                subtitle: Text('${a.createdOn}\n${a.textComment ?? '暂无文字点评'}'),
+                    : Image.network(thumb, width: 56, height: 56, fit: BoxFit.cover),
+                title: Text(a.headline),
+                subtitle: Text(
+                  '${_fmt(a.createdAt)}\n${a.commentText ?? '暂无文字点评'}',
+                  style: ArtEduTypography.caption,
+                ),
                 isThreeLine: true,
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(
@@ -74,5 +81,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
         },
       ),
     );
+  }
+
+  String _fmt(String iso) {
+    if (iso.length >= 10) return iso.substring(0, 10);
+    return iso;
   }
 }

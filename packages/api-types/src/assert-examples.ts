@@ -37,9 +37,12 @@ assert.deepEqual(STUDENT_STATUSES, ['active', 'archived']);
 assert.deepEqual(USER_STATUSES, ['active', 'disabled']);
 assert.ok(WATERMARK_POSITIONS.includes('bottomRight'));
 assert.equal(EXAMPLE_STUDENT.status, 'active');
+assert.equal(EXAMPLE_STUDENT.className, '创意水彩班');
 assert.equal(EXAMPLE_ACCOUNT.displayName, '林老师');
 assert.equal(EXAMPLE_ACCOUNT.status, 'active');
 assert.deepEqual(EXAMPLE_ACCOUNT.classNames, ['创意水彩班']);
+assert.ok(!('name' in EXAMPLE_ACCOUNT));
+assert.ok(!('disabled' in EXAMPLE_ACCOUNT));
 
 assert.notEqual(
   EXAMPLE_POSTER_PREVIEW.previewUrl,

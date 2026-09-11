@@ -1,6 +1,7 @@
 # 美术教培 APP
 
-> 本机用 Docker / Podman 只起 Postgres（可选 MinIO）、API 与管理端仍用 npm：见 [docs/本机Docker调试一页纸.md](docs/本机Docker调试一页纸.md)。本机能调试 ≠ `FRONTEND_READY`。
+> 本机用 Docker / Podman 只起 Postgres（可选 MinIO）、API 与管理端仍用 npm：见 [docs/本机Docker调试一页纸.md](docs/本机Docker调试一页纸.md)。  
+> **FRONTEND_READY 已签发（仅 P0 + F-011）**：清单见 [FRONTEND_READY.md](FRONTEND_READY.md)。本机能起库 ≠ 体验验收完成。
 
 面向美术培训机构的三端系统：**管理端（校长/管理员）**、**教师端**、**家长端**。
 
@@ -31,8 +32,8 @@ P0（本期可验收）：
 | --- | --- |
 | 后端 | NestJS + TypeScript + PostgreSQL + **Prisma** |
 | 对象存储 | S3 兼容抽象（本地 `local` mock；可切 MinIO/S3） |
-| 管理端 | Vue 3 + TypeScript + Vite + Element Plus（业务页尚未跟 P0 契约） |
-| 移动端 | Flutter（`apps/mobile`，parent/teacher 双入口；业务页尚未跟 P0 契约） |
+| 管理端 | Vue 3 + TypeScript + Vite + Element Plus（P0 业务页已对齐 `/api/v1`） |
+| 移动端 | Flutter（`apps/mobile`，parent/teacher 双入口；P0 业务页已对齐 `/api/v1`） |
 | 鉴权 | JWT + refresh token + RBAC |
 | 仓库 | npm workspaces：`apps/api` `apps/admin` `packages/shared` `packages/tokens` `packages/api-types` |
 
@@ -44,8 +45,9 @@ Prisma 优于 TypeORM 的说明见 [docs/adr/001-orm-prisma.md](docs/adr/001-orm
 
 ```
 apps/api          NestJS API、Prisma、e2e
-apps/admin        管理端（预研 UI，未跟本期契约）
-apps/mobile       Flutter 家长/教师（预研 UI，未跟本期契约）
+apps/admin        管理端（P0 业务页：账号 / 学员绑定 / 品牌模板）
+apps/mobile       Flutter 家长/教师（P0：上传点评 / 多孩时间线 / 海报三分离）
+FRONTEND_READY.md P0 前端可实现清单
 packages/shared   角色与 P0 公共类型
 packages/tokens   design/01 色板/字阶/间距
 packages/api-types  P0 /api/v1 DTO + 错误码（Mock 骨架）
@@ -57,21 +59,11 @@ docker-compose.yml
 .env.example
 ```
 
-## P0 Mock 骨架（业务页冻结）
+## P0 业务页与 Mock
 
-**FRONTEND_READY 暂停。** 只允许对接 Mock 的类型与轻量 client，禁止新增/扩展业务页 CRUD UI，也不验收体验。
+业务页对接真后端 `/api/v1`（`@art-edu/shared` + `apps/admin/src/api/v1.ts` / `apps/mobile/lib/src/api_client.dart`）。
 
-契约：[docs/contracts/openapi-p0.yaml](docs/contracts/openapi-p0.yaml)。仓内无 `backend/openapi-p0.yaml`。
-
-- Base `http://localhost:4010/api/v1`；`Authorization: Bearer {accessToken}`
-- 成功直接返回资源；错误 `{ code, message, details? }`
-- 定稿错误码见 `API_ERROR_DEFS`：`CONFLICT_BINDING` 409「已绑定」；`CONFLICT_STUDENT_HAS_ARTWORK` 409（`Student.status` = `active` | `archived`）；登录 `ACCOUNT_DISABLED` 403，已发 Token → 401 `UNAUTHORIZED`
-- 海报拆成两个接口，URL 禁止相同：
-  - `POST /parent/artworks/{id}/posters/preview` → `{ previewUrl, templateKey }`（`previewPoster`）
-  - `POST /parent/artworks/{id}/posters` → `{ downloadUrl, templateKey }`（`downloadPoster`）
-  - Mock 示例：`…-preview.png` vs `….png`
-
-启动 Prism：
+Prism Mock 仍可用（字段名偏 OpenAPI 旧稿，仅作对照）：
 
 ```bash
 docker compose --profile mock up prism
@@ -79,11 +71,11 @@ docker compose --profile mock up prism
 npx --yes @stoplight/prism-cli@5 mock docs/contracts/openapi-p0.yaml -p 4010 -h 0.0.0.0
 ```
 
-管理端 P0 client：`apps/admin/src/api/p0`（`VITE_P0_API_BASE_URL` 可切换 base）。现有视图仍走 `apps/admin/src/api/http.ts` + `VITE_API_BASE_URL`。
+- 管理端 Mock client：`apps/admin/src/api/p0`（`VITE_P0_API_BASE_URL`）
+- 移动端 Mock 桩：`apps/mobile/lib/src/p0/`
+- 海报两接口 URL 禁止相同：`previewPoster` vs `downloadPoster`
 
-移动端桩：`apps/mobile/lib/src/p0/`，接法见 [apps/mobile/README.md](apps/mobile/README.md)。不要改现有 Screen。
-
-更完整的 Prism / MSW 说明：[docs/contracts/README.md](docs/contracts/README.md)。
+硬约束自检：`npm run test:frontend-ready`。说明见 [docs/contracts/README.md](docs/contracts/README.md)。
 
 ## 本地启动
 
@@ -152,11 +144,10 @@ Swagger：<http://localhost:3000/api/v1/docs>
 
 ### 主链路演示
 
-1. `POST /api/v1/auth/login`，body `{ "phone": "13800000000", "password": "Admin123" }`。
-2. 管理端配置品牌 / 上传 LOGO（`POST /admin/brand/logo`，字段 `file`）。未配置 LOGO 时海报会 400。
-3. 教师登录 → `GET /teacher/students`（按班级匹配）→ 上传小明作品（multipart：`image`，可选 `title`/`createdAt`/`courseTheme`）。
-4. 家长 A `GET /parent/children` 得到数组；打开小明作品时间线。家长 B 访问小明接口返回 **404「无法查看」**。
-5. 家长先打 `.../posters/preview` 换模板，再打 `.../posters` 下载成片。版式（模板、姓名、创作时间、LOGO、水印）与预览一致，但 URL 不同。
+1. 管理端登录（手机号 `13800000000` / `Admin123`）→ 账号管理（教师 `classNames`）/ 学员绑定 / 品牌 LOGO 与模板（简约/画框/杂志）。未配置 LOGO 时海报 400。
+2. Flutter 教师端登录 → 按班级看学员 → 上传图片并写文字点评。无班级时提示「请联系管理员分配班级」。
+3. Flutter 家长端多孩列表打开小明时间线与详情。家长 B 访问小明接口返回 **404「无法查看」**。
+4. 家长海报：预览页只打 `…/posters/preview`，主按钮打 `…/posters` 后进入结果页。`previewUrl` ≠ `downloadUrl`。
 
 ## 环境变量
 
@@ -170,8 +161,8 @@ Swagger：<http://localhost:3000/api/v1/docs>
 | `STORAGE_DRIVER` | `local` 或 `s3` |
 | `STORAGE_LOCAL_DIR` / `STORAGE_PUBLIC_BASE_URL` | 本地存储与对外 URL |
 | `S3_ENDPOINT` `S3_BUCKET` `S3_ACCESS_KEY` `S3_SECRET_KEY` | S3/MinIO |
-| `VITE_API_BASE_URL` | 管理端 API 前缀（预研 UI 仍可能指向旧路径） |
-| `VITE_P0_API_BASE_URL` | P0 Mock client 前缀（业务页冻结，勿改现有视图去接） |
+| `VITE_API_BASE_URL` | 管理端 API 前缀，默认 `http://localhost:3000/api/v1` |
+| `VITE_P0_API_BASE_URL` | Prism Mock client 前缀 |
 
 ## 测试
 

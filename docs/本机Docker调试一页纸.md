@@ -2,8 +2,7 @@
 
 用 **Docker 或 Podman** 只起依赖（Postgres，可选 MinIO），**API / Admin 仍在宿主机用 npm 跑**。容器引擎不同，`.env` 里的 `DATABASE_URL` 相同。
 
-> **本机能调试 ≠ `FRONTEND_READY`。**  
-> 这里只保证库起来、种子账号能登录、接口能打。管理端 / 移动端是否交付、是否冻结业务页，以仓库里程碑与 PR 为准，不要把「本机 compose 绿了」写成前端就绪。
+> 这里只保证库起来、种子账号能登录、接口能打。P0 业务前端清单见 [FRONTEND_READY.md](../FRONTEND_READY.md)，不要把「本机 compose 绿了」写成体验验收完成。
 
 ## 分工
 
@@ -179,11 +178,11 @@ podman stop art-edu-postgres art-edu-minio
 
 加 `-v` / `podman volume rm art_edu_pg_data` 会删库，演示账号需重新 migrate + seed。
 
-## 自检清单（仍不是 FRONTEND_READY）
+## 自检清单（本机依赖）
 
 1. `pg_isready` 成功，`DATABASE_URL` 指向 `artedu`。
 2. `db:migrate` + `db:seed` 无报错。
 3. `npm run dev:api` 后 Swagger 在 `/api/v1/docs`；`POST /api/v1/auth/login` 用上表手机号能拿到 `accessToken`。
 4. 需要 e2e 时另有 `artedu_test`，且未覆盖演示库。
 
-以上全过 = **本机依赖与后端调试通路可用**。前端视觉 / 业务页冻结 / 发布标准请看对应里程碑，不要在此打 `FRONTEND_READY`。
+以上全过 = **本机依赖与后端调试通路可用**。P0 前端清单与硬约束见 [FRONTEND_READY.md](../FRONTEND_READY.md)，另跑 `npm run test:frontend-ready`。
