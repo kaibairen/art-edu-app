@@ -1,0 +1,30 @@
+node_modules
+dist
+build
+.env
+.env.local
+storage
+uploads
+*.log
+.DS_Store
+coverage
+.idea
+.vscode
+*.tsbuildinfo
+
+# Flutter
+apps/mobile/.dart_tool
+apps/mobile/.packages
+apps/mobile/pubspec.lock
+apps/mobile/build
+apps/mobile/.flutter-plugins
+apps/mobile/.flutter-plugins-dependencies
+
+# Prisma
+apps/api/prisma/*.db
+apps/api/generated
+
+# OS / tooling
+.turbo
+.cache
+tmp

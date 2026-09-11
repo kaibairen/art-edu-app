@@ -1,1 +1,160 @@
-# art-edu-app
+# 美术教培 APP（一期 MVP）
+
+面向美术培训机构的三端系统：**管理端（校长/管理员）**、**教师端**、**家长端**。
+
+核心能力：学员美术作品存档、家校文字点评、机构宣传首页、作品海报生成与分享。家长只能查看已绑定孩子的数据，服务端强制隔离。
+
+## 一期范围
+
+已交付：
+
+1. 账号登录；管理端创建教师/家长；JWT + RBAC（`admin` | `teacher` | `parent`）；家长-学员一对多绑定。
+2. 家长查询一律按绑定过滤；e2e 证明越权 403。
+3. 学员档案 + 作品（图片 URL、主题、创作时间、文字点评）时间线。
+4. 教师负责学员列表、上传图片、文字点评；语音/视频点评字段占位。
+5. 服务端 3 套海报模板（classic / gallery / festival），自动姓名+创作时间，强制 LOGO + 可配置水印。
+6. 管理端：用户、LOGO/水印、海报模板元数据、首页内容 CRUD。
+7. 公开首页 API：`GET /api/public/home`。
+
+非目标（二期）：活动报名完整流程、推送、语音点评完整实现、短视频完整链路、数据导出、支付。
+
+## 技术栈（已锁定）
+
+| 端 | 选型 |
+| --- | --- |
+| 后端 | NestJS + TypeScript + PostgreSQL + **Prisma** |
+| 对象存储 | S3 兼容抽象（本地 `local` mock；可切 MinIO/S3） |
+| 管理端 | Vue 3 + TypeScript + Vite + Element Plus |
+| 移动端 | Flutter（`apps/mobile`，parent/teacher 双入口） |
+| 鉴权 | JWT + RBAC |
+| 仓库 | npm workspaces：`apps/api` `apps/admin` `packages/shared` |
+
+Prisma 优于 TypeORM 的说明见 [docs/adr/001-orm-prisma.md](docs/adr/001-orm-prisma.md)。
+
+## 仓库结构
+
+```
+apps/api          NestJS API、Prisma、e2e
+apps/admin        管理端
+apps/mobile       Flutter 家长/教师
+packages/shared   角色与公共类型
+docs/adr          架构决策记录
+docker-compose.yml
+.env.example
+```
+
+## 本地启动
+
+### 1. 环境要求
+
+- Node.js 20+
+- PostgreSQL 16（推荐 Docker）
+- 可选：Flutter 3.22+（跑移动端）
+- 可选：MinIO（`STORAGE_DRIVER=s3`）
+
+本机无 Docker 时，安装系统 PostgreSQL，并保证 `DATABASE_URL` 可连即可。
+
+### 2. 启动数据库
+
+```bash
+docker compose up -d postgres
+```
+
+使用 MinIO 时：
+
+```bash
+docker compose --profile s3 up -d
+# 将 .env 中 STORAGE_DRIVER 改为 s3，并核对 S3_* 变量
+```
+
+### 3. 安装与迁移
+
+```bash
+cp .env.example .env
+cp .env.example apps/api/.env
+npm install
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+```
+
+### 4. 启动服务
+
+```bash
+# 终端 1：API  http://localhost:3000/api
+npm run dev:api
+
+# 终端 2：管理端 http://localhost:5173
+npm run dev:admin
+```
+
+Swagger：<http://localhost:3000/api/docs>
+
+移动端见 [apps/mobile/README.md](apps/mobile/README.md)。
+
+### 演示账号
+
+| 角色 | 手机号 | 密码 | 说明 |
+| --- | --- | --- | --- |
+| 管理员 | 13800000000 | Admin123 | 管理端 |
+| 教师 | 13800000001 | Teacher123 | 负责小明、小红 |
+| 家长 A | 13800000002 | Parent123 | 仅小明 |
+| 家长 B | 13800000003 | Parent123 | 仅小红 |
+
+### 主链路演示
+
+1. 管理端登录 → 用户管理 / 学员绑定 / 修改 LOGO 与水印 / 编辑首页。
+2. 教师端登录 → 上传小明作品并写文字点评。
+3. 家长 A 打开小明时间线可见新作品；家长 B 访问小明接口返回 403。
+4. 在作品详情选择 classic / gallery / festival 生成海报（含姓名、日期、LOGO、水印）。
+5. 未登录访问 `GET /api/public/home` 查看宣传首页。
+
+## 环境变量
+
+完整列表见 [.env.example](.env.example)。关键项：
+
+| 变量 | 含义 |
+| --- | --- |
+| `DATABASE_URL` | Prisma 连接串 |
+| `JWT_SECRET` | JWT 密钥 |
+| `STORAGE_DRIVER` | `local` 或 `s3` |
+| `STORAGE_LOCAL_DIR` / `STORAGE_PUBLIC_BASE_URL` | 本地存储与对外 URL |
+| `S3_ENDPOINT` `S3_BUCKET` `S3_ACCESS_KEY` `S3_SECRET_KEY` | S3/MinIO |
+| `VITE_API_BASE_URL` | 管理端 API 前缀 |
+
+## 测试
+
+```bash
+export DATABASE_URL=postgresql://artedu:artedu@localhost:5432/artedu?schema=public
+npm run test:api    # 海报模板单测
+npm run test:e2e    # 越权 / 上传可见 / 三模板海报 / 管理端设置
+```
+
+e2e 覆盖验收项：家长越权失败、教师上传家长可见、三模板海报 recipe 含姓名时间 LOGO 水印、管理端可改水印与首页。
+
+## 架构要点
+
+```
+家长请求 → JwtAuthGuard → RolesGuard(parent)
+         → AccessService.assertParentOwnsStudent/Artwork
+         → 仅返回绑定数据，否则 403
+教师上传 → 校验 TeacherStudent → Storage.putObject → Artwork
+海报     → sharp(SVG) 强制 overlays → Storage.putObject → Poster
+公开首页 → /api/public/home（无鉴权，仅 published 内容）
+```
+
+对象存储对业务透明，见 [docs/adr/003-storage-s3-abstraction.md](docs/adr/003-storage-s3-abstraction.md)。
+
+## 参考文档（遇阻查阅）
+
+- NestJS Auth：https://docs.nestjs.com/security/authentication
+- NestJS + Prisma：https://docs.nestjs.com/recipes/prisma
+- Prisma Migrate：https://www.prisma.io/docs/orm/prisma-migrate
+- Vue Router：https://router.vuejs.org/
+- Element Plus：https://element-plus.org/zh-CN/
+- Flutter flavors：https://docs.flutter.dev/deployment/flavors
+- AWS SDK S3：https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/
+
+## 许可
+
+仅用于机构内部交付演示，未声明开源许可证。

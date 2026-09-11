@@ -1,0 +1,29 @@
+{
+  "name": "art-edu-app",
+  "private": true,
+  "version": "0.1.0",
+  "description": "美术教培 APP 一期 MVP 单体仓库",
+  "workspaces": [
+    "apps/api",
+    "apps/admin",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev:api": "npm run start:dev -w @art-edu/api",
+    "dev:admin": "npm run dev -w @art-edu/admin",
+    "build:api": "npm run build -w @art-edu/api",
+    "build:admin": "npm run build -w @art-edu/admin",
+    "build:shared": "npm run build -w @art-edu/shared",
+    "test": "npm run test -w @art-edu/api && npm run test:e2e -w @art-edu/api",
+    "test:api": "npm run test -w @art-edu/api",
+    "test:e2e": "npm run test:e2e -w @art-edu/api",
+    "db:generate": "npm run prisma:generate -w @art-edu/api",
+    "db:migrate": "npm run prisma:migrate -w @art-edu/api",
+    "db:seed": "npm run prisma:seed -w @art-edu/api",
+    "db:reset": "npm run prisma:reset -w @art-edu/api",
+    "postinstall": "npm run build:shared && npm run db:generate"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
