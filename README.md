@@ -37,11 +37,40 @@ Prisma 优于 TypeORM 的说明见 [docs/adr/001-orm-prisma.md](docs/adr/001-orm
 apps/api          NestJS API、Prisma、e2e
 apps/admin        管理端
 apps/mobile       Flutter 家长/教师
-packages/shared   角色与公共类型
+packages/shared   一期 MVP 运行时类型
+packages/api-types  P0 /api/v1 DTO + 错误码（Mock 骨架）
 docs/adr          架构决策记录
+docs/contracts    P0 OpenAPI（Prism / MSW）
 docker-compose.yml
 .env.example
 ```
+
+## P0 Mock 骨架（业务页冻结）
+
+**FRONTEND_READY 暂停。** 只允许对接 Mock 的类型与轻量 client，禁止新增/扩展业务页 CRUD UI，也不验收体验。
+
+契约：[docs/contracts/openapi-p0.yaml](docs/contracts/openapi-p0.yaml)。仓内无 `backend/openapi-p0.yaml`。
+
+- Base `http://localhost:4010/api/v1`；`Authorization: Bearer {accessToken}`
+- 成功直接返回资源；错误 `{ code, message, details? }`
+- 海报拆成两个接口，URL 禁止相同：
+  - `POST /parent/artworks/{id}/posters/preview` → `{ previewUrl, templateKey }`（`previewPoster`）
+  - `POST /parent/artworks/{id}/posters` → `{ downloadUrl, templateKey }`（`downloadPoster`）
+  - Mock 示例：`…-preview.png` vs `….png`
+
+启动 Prism：
+
+```bash
+docker compose --profile mock up prism
+# 或
+npx --yes @stoplight/prism-cli@5 mock docs/contracts/openapi-p0.yaml -p 4010 -h 0.0.0.0
+```
+
+管理端 P0 client：`apps/admin/src/api/p0`（`VITE_P0_API_BASE_URL` 可切换 base）。现有视图仍走 `apps/admin/src/api/http.ts` + `VITE_API_BASE_URL`。
+
+移动端桩：`apps/mobile/lib/src/p0/`，接法见 [apps/mobile/README.md](apps/mobile/README.md)。不要改现有 Screen。
+
+更完整的 Prism / MSW 说明：[docs/contracts/README.md](docs/contracts/README.md)。
 
 ## 本地启动
 

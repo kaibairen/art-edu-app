@@ -6,7 +6,8 @@
   "workspaces": [
     "apps/api",
     "apps/admin",
-    "packages/shared"
+    "packages/shared",
+    "packages/api-types"
   ],
   "scripts": {
     "dev:api": "npm run start:dev -w @art-edu/api",
@@ -14,14 +15,16 @@
     "build:api": "npm run build -w @art-edu/api",
     "build:admin": "npm run build -w @art-edu/admin",
     "build:shared": "npm run build -w @art-edu/shared",
+    "build:api-types": "npm run build -w @art-edu/api-types",
     "test": "npm run test -w @art-edu/api && npm run test:e2e -w @art-edu/api",
     "test:api": "npm run test -w @art-edu/api",
+    "test:p0-types": "npm run test -w @art-edu/api-types",
     "test:e2e": "DATABASE_URL=${DATABASE_URL:-postgresql://artedu:artedu@localhost:5432/artedu_test?schema=public} npm run test:e2e -w @art-edu/api",
     "db:generate": "npm run prisma:generate -w @art-edu/api",
     "db:migrate": "npm run prisma:migrate -w @art-edu/api",
     "db:seed": "npm run prisma:seed -w @art-edu/api",
     "db:reset": "npm run prisma:reset -w @art-edu/api",
-    "postinstall": "npm run build:shared && npm run db:generate"
+    "postinstall": "npm run build:shared && npm run build:api-types && npm run db:generate"
   },
   "engines": {
     "node": ">=20"

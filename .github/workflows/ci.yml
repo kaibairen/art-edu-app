@@ -52,6 +52,9 @@ jobs:
       - name: Run API unit tests
         run: npm run test:api
 
+      - name: Check P0 api-types examples
+        run: npm run test:p0-types
+
   test-e2e:
     name: test:e2e
     runs-on: ubuntu-latest

@@ -1,0 +1,961 @@
+openapi: 3.0.3
+info:
+  title: 美术教培 P0 API
+  version: 0.1.0
+  description: |
+    FRONTEND_READY 暂停。本文件仅供 Prism / MSW Mock 与前端类型对齐。
+    成功响应直接返回资源；失败为 `{ code, message, details? }`。
+    越权读：404 NOT_FOUND「无法查看」。
+    海报已拆成两个接口，禁止返回同一 URL：
+    - POST /parent/artworks/{id}/posters/preview → { previewUrl, templateKey }
+    - POST /parent/artworks/{id}/posters → { downloadUrl, templateKey }
+servers:
+  - url: http://localhost:4010
+    description: Prism Mock
+  - url: http://localhost:3000
+    description: 将来真后端（P0 /api/v1 就绪后）
+
+tags:
+  - name: Auth
+  - name: Brand
+  - name: Parent
+  - name: Teacher
+  - name: Admin
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Authorization: Bearer {accessToken}
+
+  schemas:
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          enum:
+            - NOT_FOUND
+            - UNAUTHORIZED
+            - VALIDATION_ERROR
+            - INVALID_CREDENTIALS
+            - TOKEN_EXPIRED
+            - ACCOUNT_DISABLED
+            - CONFLICT_BINDING
+            - CONFLICT_STUDENT_HAS_ARTWORK
+            - LOGO_NOT_CONFIGURED
+            - UNSUPPORTED_TEMPLATE
+        message:
+          type: string
+        details: {}
+      example:
+        code: NOT_FOUND
+        message: 无法查看
+
+    Role:
+      type: string
+      enum: [admin, teacher, parent]
+
+    PosterTemplateKey:
+      type: string
+      enum: [simple, frame, magazine]
+
+    WatermarkPosition:
+      type: string
+      description: camelCase
+      enum: [topLeft, topRight, bottomLeft, bottomRight, center]
+
+    BindingKind:
+      type: string
+      enum: [parent, teacher]
+
+    AuthUser:
+      type: object
+      required: [id, phone, email, name, role, disabled]
+      properties:
+        id: { type: string }
+        phone: { type: string }
+        email: { type: string, nullable: true }
+        name: { type: string }
+        role: { $ref: '#/components/schemas/Role' }
+        disabled: { type: boolean }
+      example:
+        id: acc-parent-a
+        phone: '13800000002'
+        email: null
+        name: 家长A
+        role: parent
+        disabled: false
+
+    LoginRequest:
+      type: object
+      required: [account, password]
+      properties:
+        account: { type: string }
+        password: { type: string }
+
+    LoginResponse:
+      type: object
+      required: [accessToken, refreshToken, user]
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        user: { $ref: '#/components/schemas/AuthUser' }
+      example:
+        accessToken: mock-access-token
+        refreshToken: mock-refresh-token
+        user:
+          id: acc-parent-a
+          phone: '13800000002'
+          email: null
+          name: 家长A
+          role: parent
+          disabled: false
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+
+    TokenPair:
+      type: object
+      required: [accessToken, refreshToken]
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+
+    LogoutResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean, enum: [true] }
+
+    Student:
+      type: object
+      required: [id, name, birthday, gender, note, avatarUrl, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        birthday: { type: string, nullable: true }
+        gender: { type: string, nullable: true }
+        note: { type: string, nullable: true }
+        avatarUrl: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+      example:
+        id: stu-xiaoming
+        name: 小明
+        birthday: '2016-03-12'
+        gender: male
+        note: null
+        avatarUrl: null
+        createdAt: '2026-09-01T00:00:00.000Z'
+
+    ArtworkComment:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string }
+
+    Artwork:
+      type: object
+      required: [id, studentId, teacherId, imageUrl, theme, createdOn, comment, createdAt]
+      properties:
+        id: { type: string }
+        studentId: { type: string }
+        teacherId: { type: string }
+        imageUrl: { type: string }
+        theme: { type: string }
+        createdOn: { type: string }
+        comment:
+          allOf:
+            - $ref: '#/components/schemas/ArtworkComment'
+          nullable: true
+        createdAt: { type: string, format: date-time }
+      example:
+        id: aw-demo
+        studentId: stu-xiaoming
+        teacherId: acc-teacher
+        imageUrl: http://localhost:4010/files/artworks/aw-demo.jpg
+        theme: 春天的树
+        createdOn: '2026-09-10'
+        comment:
+          text: 构图很稳，颜色再大胆一些。
+        createdAt: '2026-09-10T08:00:00.000Z'
+
+    ArtworkCursorPage:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Artwork' }
+        nextCursor: { type: string, nullable: true }
+
+    CreateCommentRequest:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string }
+
+    GeneratePosterRequest:
+      type: object
+      required: [templateKey]
+      properties:
+        templateKey: { $ref: '#/components/schemas/PosterTemplateKey' }
+
+    PosterPreview:
+      type: object
+      required: [previewUrl, templateKey]
+      description: |
+        POST …/posters/preview 的响应。仅屏幕预览，切模板只打本接口。
+        previewUrl 禁止与 download 接口的 downloadUrl 相同。
+      properties:
+        templateKey: { $ref: '#/components/schemas/PosterTemplateKey' }
+        previewUrl:
+          type: string
+          description: 屏幕预览专用
+          example: http://localhost:4010/files/posters/aw-demo-simple-preview.png
+      example:
+        templateKey: simple
+        previewUrl: http://localhost:4010/files/posters/aw-demo-simple-preview.png
+
+    PosterDownload:
+      type: object
+      required: [downloadUrl, templateKey]
+      description: |
+        POST …/posters 的响应。正式成片，主按钮下载必须用本接口。
+        downloadUrl 禁止与 preview 接口的 previewUrl 相同。
+      properties:
+        templateKey: { $ref: '#/components/schemas/PosterTemplateKey' }
+        downloadUrl:
+          type: string
+          description: 正式成片
+          example: http://localhost:4010/files/posters/aw-demo-simple.png
+      example:
+        templateKey: simple
+        downloadUrl: http://localhost:4010/files/posters/aw-demo-simple.png
+
+    Brand:
+      type: object
+      required: [orgName, logoUrl, watermarkText, watermarkPosition]
+      properties:
+        orgName: { type: string }
+        logoUrl: { type: string, nullable: true }
+        watermarkText: { type: string }
+        watermarkPosition: { $ref: '#/components/schemas/WatermarkPosition' }
+      example:
+        orgName: 美术教培机构
+        logoUrl: http://localhost:4010/files/branding/logo.png
+        watermarkText: 美术教培 · 作品水印
+        watermarkPosition: bottomRight
+
+    UpdateBrandRequest:
+      type: object
+      properties:
+        orgName: { type: string }
+        watermarkText: { type: string }
+        watermarkPosition: { $ref: '#/components/schemas/WatermarkPosition' }
+
+    Account:
+      type: object
+      required: [id, phone, email, name, role, disabled, createdAt]
+      properties:
+        id: { type: string }
+        phone: { type: string }
+        email: { type: string, nullable: true }
+        name: { type: string }
+        role: { $ref: '#/components/schemas/Role' }
+        disabled: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    CreateAccountRequest:
+      type: object
+      required: [phone, name, password, role]
+      properties:
+        phone: { type: string }
+        name: { type: string }
+        password: { type: string }
+        role:
+          type: string
+          enum: [teacher, parent]
+        email: { type: string }
+
+    UpdateAccountRequest:
+      type: object
+      properties:
+        name: { type: string }
+        email: { type: string, nullable: true }
+        disabled: { type: boolean }
+        password: { type: string }
+
+    CreateStudentRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        birthday: { type: string }
+        gender: { type: string }
+        note: { type: string }
+        avatarUrl: { type: string }
+
+    Binding:
+      type: object
+      required: [id, accountId, studentId, kind, createdAt]
+      properties:
+        id: { type: string }
+        accountId: { type: string }
+        studentId: { type: string }
+        kind: { $ref: '#/components/schemas/BindingKind' }
+        createdAt: { type: string, format: date-time }
+      example:
+        id: bind-1
+        accountId: acc-parent-a
+        studentId: stu-xiaoming
+        kind: parent
+        createdAt: '2026-09-01T00:00:00.000Z'
+
+    CreateBindingRequest:
+      type: object
+      required: [accountId, studentId, kind]
+      properties:
+        accountId: { type: string }
+        studentId: { type: string }
+        kind: { $ref: '#/components/schemas/BindingKind' }
+
+  responses:
+    ApiError:
+      description: 业务错误
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    UnauthorizedRead:
+      description: 越权读，故意返回 404
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+          example:
+            code: NOT_FOUND
+            message: 无法查看
+
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: 登录
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+            example:
+              account: '13800000002'
+              password: Parent123
+      responses:
+        '200':
+          description: 直接返回 token + 用户
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+        '401':
+          $ref: '#/components/responses/ApiError'
+        '403':
+          description: 账号停用
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+              example:
+                code: ACCOUNT_DISABLED
+                message: 账号已停用
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: 登出
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200':
+          description: 已登出
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LogoutResponse' }
+              example:
+                ok: true
+
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      summary: 当前用户
+      responses:
+        '200':
+          description: AuthUser
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthUser' }
+        '401':
+          $ref: '#/components/responses/ApiError'
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: 刷新 accessToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+            example:
+              refreshToken: mock-refresh-token
+      responses:
+        '200':
+          description: 新 token 对
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenPair' }
+              example:
+                accessToken: mock-access-token-2
+                refreshToken: mock-refresh-token-2
+        '401':
+          $ref: '#/components/responses/ApiError'
+
+  /api/v1/brand:
+    get:
+      tags: [Brand]
+      summary: 只读品牌信息（任意调用方）
+      security: []
+      responses:
+        '200':
+          description: Brand
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Brand' }
+
+  /api/v1/parent/children:
+    get:
+      tags: [Parent]
+      summary: 已绑定孩子，直接返回 Student[]
+      responses:
+        '200':
+          description: Student 数组，无分页包装
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Student' }
+              example:
+                - id: stu-xiaoming
+                  name: 小明
+                  birthday: '2016-03-12'
+                  gender: male
+                  note: null
+                  avatarUrl: null
+                  createdAt: '2026-09-01T00:00:00.000Z'
+
+  /api/v1/parent/children/{studentId}/artworks:
+    get:
+      tags: [Parent]
+      summary: 孩子作品 cursor 列表
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: cursor 页
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ArtworkCursorPage' }
+              example:
+                items:
+                  - id: aw-demo
+                    studentId: stu-xiaoming
+                    teacherId: acc-teacher
+                    imageUrl: http://localhost:4010/files/artworks/aw-demo.jpg
+                    theme: 春天的树
+                    createdOn: '2026-09-10'
+                    comment:
+                      text: 构图很稳，颜色再大胆一些。
+                    createdAt: '2026-09-10T08:00:00.000Z'
+                nextCursor: null
+        '404':
+          $ref: '#/components/responses/UnauthorizedRead'
+
+  /api/v1/parent/artworks/{artworkId}:
+    get:
+      tags: [Parent]
+      summary: 作品详情
+      parameters:
+        - in: path
+          name: artworkId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Artwork
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Artwork' }
+        '404':
+          $ref: '#/components/responses/UnauthorizedRead'
+
+  /api/v1/parent/artworks/{artworkId}/posters/preview:
+    post:
+      tags: [Parent]
+      summary: 海报屏幕预览（previewPoster）
+      parameters:
+        - in: path
+          name: artworkId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GeneratePosterRequest' }
+            example:
+              templateKey: simple
+      responses:
+        '200':
+          description: 只返回 previewUrl，切模板只刷本接口
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PosterPreview' }
+              example:
+                templateKey: simple
+                previewUrl: http://localhost:4010/files/posters/aw-demo-simple-preview.png
+        '404':
+          $ref: '#/components/responses/UnauthorizedRead'
+        '409':
+          description: 未配置 LOGO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+              example:
+                code: LOGO_NOT_CONFIGURED
+                message: 尚未配置机构 LOGO
+
+  /api/v1/parent/artworks/{artworkId}/posters:
+    post:
+      tags: [Parent]
+      summary: 海报正式成片（downloadPoster）
+      parameters:
+        - in: path
+          name: artworkId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GeneratePosterRequest' }
+            example:
+              templateKey: simple
+      responses:
+        '200':
+          description: 只返回 downloadUrl；禁止与 previewUrl 同一资源
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PosterDownload' }
+              example:
+                templateKey: simple
+                downloadUrl: http://localhost:4010/files/posters/aw-demo-simple.png
+        '404':
+          $ref: '#/components/responses/UnauthorizedRead'
+        '409':
+          description: 未配置 LOGO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+              example:
+                code: LOGO_NOT_CONFIGURED
+                message: 尚未配置机构 LOGO
+
+  /api/v1/teacher/students:
+    get:
+      tags: [Teacher]
+      summary: 负责学员，直接返回 Student[]
+      responses:
+        '200':
+          description: Student 数组
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Student' }
+
+  /api/v1/teacher/students/{studentId}/artworks:
+    post:
+      tags: [Teacher]
+      summary: multipart 上传作品
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, theme, createdOn]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                theme: { type: string }
+                createdOn: { type: string }
+      responses:
+        '200':
+          description: Artwork
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Artwork' }
+        '404':
+          $ref: '#/components/responses/UnauthorizedRead'
+
+  /api/v1/teacher/artworks/{artworkId}/comments:
+    post:
+      tags: [Teacher]
+      summary: 文字点评 { text }
+      parameters:
+        - in: path
+          name: artworkId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCommentRequest' }
+            example:
+              text: 构图很稳，颜色再大胆一些。
+      responses:
+        '200':
+          description: 更新后的 Artwork
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Artwork' }
+
+  /api/v1/teacher/artworks/{artworkId}/posters/preview:
+    post:
+      tags: [Teacher]
+      summary: 教师海报预览（与家长同构，previewPoster）
+      parameters:
+        - in: path
+          name: artworkId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GeneratePosterRequest' }
+      responses:
+        '200':
+          description: { previewUrl, templateKey }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PosterPreview' }
+              example:
+                templateKey: frame
+                previewUrl: http://localhost:4010/files/posters/aw-demo-frame-preview.png
+        '409':
+          description: 未配置 LOGO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+              example:
+                code: LOGO_NOT_CONFIGURED
+                message: 尚未配置机构 LOGO
+
+  /api/v1/teacher/artworks/{artworkId}/posters:
+    post:
+      tags: [Teacher]
+      summary: 教师海报成片（与家长同构，downloadPoster）
+      parameters:
+        - in: path
+          name: artworkId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GeneratePosterRequest' }
+      responses:
+        '200':
+          description: { downloadUrl, templateKey }，禁止与 previewUrl 相同
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PosterDownload' }
+              example:
+                templateKey: frame
+                downloadUrl: http://localhost:4010/files/posters/aw-demo-frame.png
+        '409':
+          description: 未配置 LOGO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+              example:
+                code: LOGO_NOT_CONFIGURED
+                message: 尚未配置机构 LOGO
+
+  /api/v1/admin/accounts:
+    get:
+      tags: [Admin]
+      summary: 账号列表
+      parameters:
+        - in: query
+          name: role
+          schema: { $ref: '#/components/schemas/Role' }
+      responses:
+        '200':
+          description: Account[]
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Account' }
+    post:
+      tags: [Admin]
+      summary: 创建教师/家长账号
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateAccountRequest' }
+      responses:
+        '200':
+          description: Account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+
+  /api/v1/admin/accounts/{accountId}:
+    get:
+      tags: [Admin]
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        '404':
+          $ref: '#/components/responses/ApiError'
+    patch:
+      tags: [Admin]
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateAccountRequest' }
+      responses:
+        '200':
+          description: Account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+
+  /api/v1/admin/students:
+    get:
+      tags: [Admin]
+      responses:
+        '200':
+          description: Student[]
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Student' }
+    post:
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateStudentRequest' }
+      responses:
+        '200':
+          description: Student
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Student' }
+
+  /api/v1/admin/students/{studentId}:
+    get:
+      tags: [Admin]
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Student
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Student' }
+        '404':
+          $ref: '#/components/responses/ApiError'
+    delete:
+      tags: [Admin]
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: 已删除
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok: { type: boolean, enum: [true] }
+        '409':
+          description: 学员仍有作品
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+              example:
+                code: CONFLICT_STUDENT_HAS_ARTWORK
+                message: 学员仍有作品，无法删除
+
+  /api/v1/admin/bindings:
+    get:
+      tags: [Admin]
+      parameters:
+        - in: query
+          name: accountId
+          schema: { type: string }
+        - in: query
+          name: studentId
+          schema: { type: string }
+        - in: query
+          name: kind
+          schema: { $ref: '#/components/schemas/BindingKind' }
+      responses:
+        '200':
+          description: Binding[]
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Binding' }
+    post:
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateBindingRequest' }
+      responses:
+        '200':
+          description: Binding
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Binding' }
+        '409':
+          description: 绑定冲突
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+              example:
+                code: CONFLICT_BINDING
+                message: 绑定关系已存在
+
+  /api/v1/admin/bindings/{bindingId}:
+    delete:
+      tags: [Admin]
+      parameters:
+        - in: path
+          name: bindingId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: 已解除
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok: { type: boolean, enum: [true] }
+
+  /api/v1/admin/brand:
+    get:
+      tags: [Admin]
+      responses:
+        '200':
+          description: Brand
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Brand' }
+    patch:
+      tags: [Admin]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateBrandRequest' }
+      responses:
+        '200':
+          description: Brand
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Brand' }
+
+  /api/v1/admin/brand/logo:
+    post:
+      tags: [Admin]
+      summary: 上传 LOGO（multipart 字段 logo）
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [logo]
+              properties:
+                logo:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: 更新后的 Brand
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Brand' }
+
+security:
+  - bearerAuth: []
