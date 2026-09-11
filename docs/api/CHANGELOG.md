@@ -1,10 +1,30 @@
+# API 契约变更
+
+## P1 / US-P1-01 首页公开内容
+
+预研通用 `HomeContent`（`/admin/home-contents` + `GET /public/home` 的 `contents[]`）重建为三块：
+
+| 块 | 公开读 | 管理写 |
+| --- | --- | --- |
+| 轮播 | 仅 `enabled=true`：`imageUrl` `title?` `subtitle?` `linkUrl?` `sortOrder` | `/admin/home/carousels` CRUD + 启停/排序 |
+| 优秀作品 | 仅 `published=true`：`imageUrl` `title` `studentDisplayName` | `/admin/home/featured-artworks` CRUD + 草稿发布/排序 |
+| 课程 | 仅 `published=true`：`title` `summary` `coverUrl?` | `/admin/home/courses` CRUD + 草稿发布/排序 |
+
+公开聚合：`GET /api/v1/public/home`（无鉴权）。发布过滤在接口层。
+
+**公开优秀作品卡禁止字段**：`commentText`、点评、`studentId`、`note` 等私人档案。课程**无长文 `body`**（`summary` ≤ 200）。无 LOGO 不阻断（`brand.logoUrl` 可为 null）。不做课表 / 考勤 / 活动报名。
+
+契约：[`docs/contracts/openapi-p1.yaml`](../contracts/openapi-p1.yaml)；类型：`@art-edu/api-types` 的 `PublicHome` / `P1_HOME_PATHS`。
+
+---
+
 # API 契约变更（预研面 → API-MVP-P0-0.1）
 
 基线：`cursor/art-edu-mvp-ec9b`（PR #1 / v0.1.0-mvp **预研**）。预研实现可跑，但**不能**视为已按本契约交付。
 
 - F-011 / classNames 暴露到 OpenAPI 与 api-types（Account / CreateAccountRequest / UpdateAccountRequest；字段对齐 Nest 的 displayName、status=active|disabled。实现已有，仅补契约面）
 
-本期只对齐 P0。`/admin/home-contents` 与 `GET /public/home` 仍保留，**不作为本期验收**。
+P0 当时未验收首页运营。P1 起见上文 US-P1-01，预研 `/admin/home-contents` 已拆除。
 
 ## 路径
 

@@ -26,7 +26,14 @@ import {
   EXAMPLE_POSTER_PREVIEW,
   EXAMPLE_POSTER_PREVIEW_URL,
   EXAMPLE_STUDENT,
+  EXAMPLE_PUBLIC_FEATURED_ARTWORK,
+  EXAMPLE_PUBLIC_HOME,
 } from './examples';
+import {
+  COURSE_SUMMARY_MAX_LENGTH,
+  P1_HOME_PATHS,
+  PUBLIC_FEATURED_ARTWORK_FIELDS,
+} from './dto';
 
 assert.ok(API_ERROR_CODES.includes('CONFLICT_BINDING'));
 assert.ok(API_ERROR_CODES.includes('CONFLICT_STUDENT_HAS_ARTWORK'));
@@ -89,5 +96,22 @@ assert.equal(
   mapErrorBody(401, EXAMPLE_ACCOUNT_DISABLED_ISSUED_TOKEN).code,
   'UNAUTHORIZED',
 );
+
+const featuredKeys = Object.keys(EXAMPLE_PUBLIC_FEATURED_ARTWORK).sort();
+assert.deepEqual(featuredKeys, [...PUBLIC_FEATURED_ARTWORK_FIELDS].sort());
+assert.ok(!('commentText' in EXAMPLE_PUBLIC_FEATURED_ARTWORK));
+assert.ok(!('comment' in EXAMPLE_PUBLIC_FEATURED_ARTWORK));
+assert.ok(!('studentId' in EXAMPLE_PUBLIC_FEATURED_ARTWORK));
+assert.ok(!('note' in EXAMPLE_PUBLIC_FEATURED_ARTWORK));
+for (const card of EXAMPLE_PUBLIC_HOME.featuredArtworks) {
+  assert.deepEqual(Object.keys(card).sort(), [...PUBLIC_FEATURED_ARTWORK_FIELDS].sort());
+}
+for (const course of EXAMPLE_PUBLIC_HOME.courses) {
+  assert.ok(!('body' in course));
+  assert.ok(course.summary.length <= COURSE_SUMMARY_MAX_LENGTH);
+}
+assert.equal(EXAMPLE_PUBLIC_HOME.brand.logoUrl, null);
+assert.equal(P1_HOME_PATHS.publicHome, '/public/home');
+assert.equal(P1_HOME_PATHS.adminFeaturedArtworks, '/admin/home/featured-artworks');
 
 console.log('api-types examples and error mapping ok');

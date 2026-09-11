@@ -19,6 +19,7 @@ export const WATERMARK_POSITIONS = [
 ] as const;
 export type WatermarkPosition = (typeof WATERMARK_POSITIONS)[number];
 
+/** @deprecated P1 起首页拆成轮播 / 优秀作品 / 课程三块，不再用通用 type。 */
 export const HOME_CONTENT_TYPES = [
   'banner',
   'announcement',
@@ -26,6 +27,16 @@ export const HOME_CONTENT_TYPES = [
   'course',
 ] as const;
 export type HomeContentType = (typeof HOME_CONTENT_TYPES)[number];
+
+/** 公开优秀作品卡允许字段。禁止 commentText / 点评 / 私人档案。 */
+export const PUBLIC_FEATURED_ARTWORK_FIELDS = [
+  'id',
+  'imageUrl',
+  'title',
+  'studentDisplayName',
+] as const;
+
+export const COURSE_SUMMARY_MAX_LENGTH = 200;
 
 export const ERROR_CODES = [
   'UNAUTHORIZED',
@@ -156,14 +167,59 @@ export interface OrgSettingDto {
   watermarkText: string | null;
 }
 
+export interface PublicHomeBrandDto {
+  orgName: string | null;
+  logoUrl: string | null;
+}
+
+export interface PublicCarouselDto {
+  id: string;
+  imageUrl: string;
+  title: string | null;
+  subtitle: string | null;
+  linkUrl: string | null;
+  sortOrder: number;
+}
+
+/** 公开优秀作品卡。仅此四字段，不得含 commentText。 */
+export interface PublicFeaturedArtworkDto {
+  id: string;
+  imageUrl: string;
+  title: string;
+  studentDisplayName: string;
+}
+
+/** 公开课程。仅 title + summary + 可选封面，无长文 body。 */
+export interface PublicCourseDto {
+  id: string;
+  title: string;
+  summary: string;
+  coverUrl: string | null;
+}
+
 export interface PublicHomeDto {
-  settings: OrgSettingDto;
-  contents: Array<{
-    id: string;
-    type: HomeContentType;
-    title: string;
-    body: string | null;
-    imageUrl: string | null;
-    sortOrder: number;
-  }>;
+  brand: PublicHomeBrandDto;
+  carousels: PublicCarouselDto[];
+  featuredArtworks: PublicFeaturedArtworkDto[];
+  courses: PublicCourseDto[];
+}
+
+export interface AdminCarouselDto extends PublicCarouselDto {
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminFeaturedArtworkDto extends PublicFeaturedArtworkDto {
+  sortOrder: number;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminCourseDto extends PublicCourseDto {
+  sortOrder: number;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

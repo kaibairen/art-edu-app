@@ -144,14 +144,45 @@ model PosterTemplate {
   updatedAt   DateTime @updatedAt
 }
 
-model HomeContent {
+/// 公开首页轮播。公开读仅 enabled=true。
+model HomeCarousel {
   id        String   @id @default(uuid())
-  type      String
-  title     String
-  body      String?
-  imageUrl  String?
+  imageUrl  String
+  title     String?
+  subtitle  String?
+  linkUrl   String?
   sortOrder Int      @default(0)
-  published Boolean  @default(true)
+  enabled   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([enabled, sortOrder])
+}
+
+/// 公开优秀作品卡。库内即只存公开字段，不含点评 / 私人档案。
+model HomeFeaturedArtwork {
+  id                 String   @id @default(uuid())
+  imageUrl           String
+  title              String
+  studentDisplayName String
+  sortOrder          Int      @default(0)
+  published          Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([published, sortOrder])
+}
+
+/// 公开课程简介。无长文 body。
+model HomeCourse {
+  id        String   @id @default(uuid())
+  title     String
+  summary   String
+  coverUrl  String?
+  sortOrder Int      @default(0)
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published, sortOrder])
 }

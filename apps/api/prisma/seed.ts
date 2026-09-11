@@ -191,37 +191,84 @@ async function main() {
     });
   }
 
-  const homeCount = await prisma.homeContent.count();
-  if (homeCount === 0) {
-    await prisma.homeContent.createMany({
+  const [carouselCount, featuredCount, courseCount] = await Promise.all([
+    prisma.homeCarousel.count(),
+    prisma.homeFeaturedArtwork.count(),
+    prisma.homeCourse.count(),
+  ]);
+
+  if (carouselCount === 0) {
+    await prisma.homeCarousel.createMany({
       data: [
         {
-          type: 'banner',
+          imageUrl: '/files/home/banner-autumn.jpg',
           title: '把每一次落笔，都变成成长档案',
-          body: '作品存档 · 家校点评 · 海报分享',
+          subtitle: '作品存档 · 家校点评 · 海报分享',
+          linkUrl: null,
+          sortOrder: 0,
+          enabled: true,
+        },
+        {
+          imageUrl: '/files/home/banner-draft.jpg',
+          title: '未启用轮播（公开不可见）',
+          subtitle: '草稿',
+          sortOrder: 10,
+          enabled: false,
+        },
+      ],
+    });
+  }
+
+  if (featuredCount === 0) {
+    await prisma.homeFeaturedArtwork.createMany({
+      data: [
+        {
+          imageUrl: '/files/home/feat-spring-tree.jpg',
+          title: '春天的树',
+          studentDisplayName: '小明',
           sortOrder: 0,
           published: true,
         },
         {
-          type: 'about',
-          title: '关于星光美术',
-          body: '面向 4-15 岁学员的系统美术课程，强调观察力、构图与色彩表达。',
+          imageUrl: '/files/home/feat-color-blocks.jpg',
+          title: '彩色色块',
+          studentDisplayName: '小红',
           sortOrder: 1,
           published: true,
         },
         {
-          type: 'course',
+          imageUrl: '/files/home/feat-draft.jpg',
+          title: '未发布作品卡',
+          studentDisplayName: '内部预览',
+          sortOrder: 20,
+          published: false,
+        },
+      ],
+    });
+  }
+
+  if (courseCount === 0) {
+    await prisma.homeCourse.createMany({
+      data: [
+        {
           title: '少儿创意水彩',
-          body: '周六上午 9:30-11:00，小班制，作品纳入成长时间线。',
-          sortOrder: 2,
+          summary: '周六上午小班制，观察力、构图与色彩表达。',
+          coverUrl: '/files/home/course-watercolor.jpg',
+          sortOrder: 0,
           published: true,
         },
         {
-          type: 'announcement',
-          title: '本月主题：春天的树',
-          body: '请家长在 APP 中查看孩子最新课堂作品与教师点评。',
-          sortOrder: 3,
+          title: '素描基础',
+          summary: '线条、明暗与结构，适合 8 岁以上。',
+          coverUrl: null,
+          sortOrder: 1,
           published: true,
+        },
+        {
+          title: '未发布课程',
+          summary: '草稿，公开首页不可见。',
+          sortOrder: 20,
+          published: false,
         },
       ],
     });

@@ -72,7 +72,9 @@ describe('Art edu API-MVP-P0-0.1 e2e', () => {
     await prisma.artwork.deleteMany();
     await prisma.refreshToken.deleteMany();
     await prisma.parentStudent.deleteMany();
-    await prisma.homeContent.deleteMany();
+    await prisma.homeCarousel.deleteMany();
+    await prisma.homeFeaturedArtwork.deleteMany();
+    await prisma.homeCourse.deleteMany();
     await prisma.student.deleteMany();
     await prisma.user.deleteMany();
     await prisma.orgSetting.deleteMany();
@@ -446,10 +448,14 @@ describe('Art edu API-MVP-P0-0.1 e2e', () => {
       .expect(204);
   });
 
-  it('keeps public home under v1 without treating it as P0 acceptance', async () => {
+  it('serves public home under v1 even without a logo', async () => {
     const res = await request(app.getHttpServer())
       .get(`${prefix}/public/home`)
       .expect(200);
-    expect(res.body.settings.orgName).toBe('测试画室');
+    expect(res.body.brand.orgName).toBe('测试画室');
+    expect(res.body.brand.logoUrl).toBeNull();
+    expect(res.body.carousels).toEqual([]);
+    expect(res.body.featuredArtworks).toEqual([]);
+    expect(res.body.courses).toEqual([]);
   });
 });
