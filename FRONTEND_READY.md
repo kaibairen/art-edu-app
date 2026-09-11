@@ -18,7 +18,7 @@
 | --- | --- | --- | --- | --- |
 | 1 | US-P0-01 | 三端 | 登录与三角色壳；未登录进受保护路由跳登录 | 管理端 `LoginView` + `AdminLayout`；Flutter `LoginScreen` + 教师/家长 Home 壳 |
 | 2 | US-P0-03 | 管理端 | 账号列表/新建/启停、学员 CRUD、家长↔学员绑定；`CONFLICT_BINDING` / `CONFLICT_STUDENT_HAS_ARTWORK` / `archived` | `UsersView` `StudentsView` |
-| 2a | F-011 / P0.1 | 管理端+教师 | 教师 `classNames: string[]` 管理端可编辑；教师空态「请联系管理员分配班级」 | 账号编辑 + 教师 Home 空态。见 [docs/P0.1-教师班级归属小补.md](docs/P0.1-教师班级归属小补.md) |
+| 2a | F-011 / P0.1 | 管理端+教师 | 教师 `classNames: string[]` 管理端可编辑；教师空态「请联系管理员分配班级」 | 账号 `POST/PATCH /admin/accounts` 已接真后端该字段（不依赖 OpenAPI）。教师 Home 空列表文案见上。 [docs/P0.1-教师班级归属小补.md](docs/P0.1-教师班级归属小补.md) |
 | 3 | US-P0-07 | 管理端 | 品牌 LOGO / 水印 / 模板；未配置 LOGO 态；`POST /admin/brand/logo` 字段 `file` | `SettingsView` `TemplatesView` |
 | 4 | US-P0-04 | 教师端 | 上传图片 + 文字点评 | `UploadScreen`（multipart `title`/`createdAt`/`courseTheme`）+ `POST …/comments` |
 | 5 | US-P0-05 | 家长端 | 多孩列表 + 时间线 + 详情 | `HomeScreen` `TimelineScreen` `ArtworkScreen` |

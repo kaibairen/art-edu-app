@@ -37,6 +37,7 @@ export async function listAccounts(params?: {
   return data;
 }
 
+/** F-011：真后端 POST /admin/accounts 已接受 classNames[]（仅教师写入）。不依赖 OpenAPI。 */
 export async function createAccount(body: {
   phone: string;
   displayName: string;
@@ -49,6 +50,7 @@ export async function createAccount(body: {
   return data;
 }
 
+/** F-011：真后端 PATCH /admin/accounts/:id 已接受 classNames[]（仅已是教师时更新）。 */
 export async function updateAccount(
   id: string,
   body: { displayName?: string; email?: string; password?: string; classNames?: string[] },
