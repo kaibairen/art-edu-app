@@ -33,7 +33,9 @@ describe('home public mappers', () => {
       title: '春天的树',
       studentDisplayName: '小明',
     });
-    expect(JSON.stringify(card)).not.toMatch(/commentText|点评|studentId|note/);
+    expect(JSON.stringify(card)).not.toMatch(
+      /commentText|teacherComment|点评|studentId|note/,
+    );
   });
 
   it('projects courses without a long-form body', () => {
@@ -61,7 +63,7 @@ describe('home public mappers', () => {
     const home = toPublicHome({
       orgName: '星光美术教室',
       logoUrl: null,
-      carousels: [],
+      banners: [],
       featuredArtworks: [featuredRow],
       courses: [],
     });

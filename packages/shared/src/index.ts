@@ -172,7 +172,7 @@ export interface PublicHomeBrandDto {
   logoUrl: string | null;
 }
 
-export interface PublicCarouselDto {
+export interface PublicBannerDto {
   id: string;
   imageUrl: string;
   title: string | null;
@@ -199,12 +199,12 @@ export interface PublicCourseDto {
 
 export interface PublicHomeDto {
   brand: PublicHomeBrandDto;
-  carousels: PublicCarouselDto[];
+  banners: PublicBannerDto[];
   featuredArtworks: PublicFeaturedArtworkDto[];
   courses: PublicCourseDto[];
 }
 
-export interface AdminCarouselDto extends PublicCarouselDto {
+export interface AdminBannerDto extends PublicBannerDto {
   enabled: boolean;
   createdAt: string;
   updatedAt: string;

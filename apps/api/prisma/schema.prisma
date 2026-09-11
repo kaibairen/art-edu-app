@@ -144,8 +144,8 @@ model PosterTemplate {
   updatedAt   DateTime @updatedAt
 }
 
-/// 公开首页轮播。公开读仅 enabled=true。
-model HomeCarousel {
+/// 公开首页轮播（banner）。公开读仅 enabled=true。
+model HomeBanner {
   id        String   @id @default(uuid())
   imageUrl  String
   title     String?

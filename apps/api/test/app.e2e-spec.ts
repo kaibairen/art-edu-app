@@ -72,7 +72,7 @@ describe('Art edu API-MVP-P0-0.1 e2e', () => {
     await prisma.artwork.deleteMany();
     await prisma.refreshToken.deleteMany();
     await prisma.parentStudent.deleteMany();
-    await prisma.homeCarousel.deleteMany();
+    await prisma.homeBanner.deleteMany();
     await prisma.homeFeaturedArtwork.deleteMany();
     await prisma.homeCourse.deleteMany();
     await prisma.student.deleteMany();
@@ -454,7 +454,7 @@ describe('Art edu API-MVP-P0-0.1 e2e', () => {
       .expect(200);
     expect(res.body.brand.orgName).toBe('测试画室');
     expect(res.body.brand.logoUrl).toBeNull();
-    expect(res.body.carousels).toEqual([]);
+    expect(res.body.banners).toEqual([]);
     expect(res.body.featuredArtworks).toEqual([]);
     expect(res.body.courses).toEqual([]);
   });

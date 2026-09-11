@@ -100,9 +100,11 @@ assert.equal(
 const featuredKeys = Object.keys(EXAMPLE_PUBLIC_FEATURED_ARTWORK).sort();
 assert.deepEqual(featuredKeys, [...PUBLIC_FEATURED_ARTWORK_FIELDS].sort());
 assert.ok(!('commentText' in EXAMPLE_PUBLIC_FEATURED_ARTWORK));
+assert.ok(!('teacherComment' in EXAMPLE_PUBLIC_FEATURED_ARTWORK));
 assert.ok(!('comment' in EXAMPLE_PUBLIC_FEATURED_ARTWORK));
 assert.ok(!('studentId' in EXAMPLE_PUBLIC_FEATURED_ARTWORK));
 assert.ok(!('note' in EXAMPLE_PUBLIC_FEATURED_ARTWORK));
+assert.ok(!('点评' in EXAMPLE_PUBLIC_FEATURED_ARTWORK));
 for (const card of EXAMPLE_PUBLIC_HOME.featuredArtworks) {
   assert.deepEqual(Object.keys(card).sort(), [...PUBLIC_FEATURED_ARTWORK_FIELDS].sort());
 }
@@ -112,6 +114,11 @@ for (const course of EXAMPLE_PUBLIC_HOME.courses) {
 }
 assert.equal(EXAMPLE_PUBLIC_HOME.brand.logoUrl, null);
 assert.equal(P1_HOME_PATHS.publicHome, '/public/home');
+assert.equal(P1_HOME_PATHS.adminBanners, '/admin/home/banners');
 assert.equal(P1_HOME_PATHS.adminFeaturedArtworks, '/admin/home/featured-artworks');
+assert.equal(
+  P1_HOME_PATHS.adminFeaturedFromArtworks,
+  '/admin/home/featured-artworks/from-artworks',
+);
 
 console.log('api-types examples and error mapping ok');

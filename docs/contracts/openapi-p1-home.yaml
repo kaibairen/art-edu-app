@@ -59,7 +59,7 @@ components:
           nullable: true
           description: 未配置 LOGO 时为 null，不阻断本接口
 
-    PublicCarousel:
+    PublicBanner:
       type: object
       required: [id, imageUrl, title, subtitle, linkUrl, sortOrder]
       additionalProperties: false
@@ -76,7 +76,7 @@ components:
       required: [id, imageUrl, title, studentDisplayName]
       additionalProperties: false
       description: |
-        公开优秀作品卡。禁止 commentText / comment / studentId / note / body。
+        公开优秀作品卡。禁止 commentText / teacherComment / comment / studentId / note / body。
       properties:
         id: { type: string }
         imageUrl: { type: string }
@@ -96,13 +96,13 @@ components:
 
     PublicHome:
       type: object
-      required: [brand, carousels, featuredArtworks, courses]
+      required: [brand, banners, featuredArtworks, courses]
       additionalProperties: false
       properties:
         brand: { $ref: '#/components/schemas/PublicHomeBrand' }
-        carousels:
+        banners:
           type: array
-          items: { $ref: '#/components/schemas/PublicCarousel' }
+          items: { $ref: '#/components/schemas/PublicBanner' }
         featuredArtworks:
           type: array
           items: { $ref: '#/components/schemas/PublicFeaturedArtwork' }
@@ -113,7 +113,7 @@ components:
         brand:
           orgName: 星光美术教室
           logoUrl: null
-        carousels:
+        banners:
           - id: car-1
             imageUrl: http://localhost:3000/files/home/banner-autumn.jpg
             title: 把每一次落笔，都变成成长档案
@@ -131,9 +131,9 @@ components:
             summary: 周六上午小班制，观察力、构图与色彩表达。
             coverUrl: null
 
-    AdminCarousel:
+    AdminBanner:
       allOf:
-        - $ref: '#/components/schemas/PublicCarousel'
+        - $ref: '#/components/schemas/PublicBanner'
         - type: object
           required: [enabled, createdAt, updatedAt]
           properties:
@@ -163,7 +163,7 @@ components:
             createdAt: { type: string, format: date-time }
             updatedAt: { type: string, format: date-time }
 
-    CreateCarouselRequest:
+    CreateBannerRequest:
       type: object
       required: [imageUrl]
       properties:
@@ -174,7 +174,7 @@ components:
         sortOrder: { type: integer, default: 0 }
         enabled: { type: boolean, default: false, description: 默认草稿（未启用） }
 
-    UpdateCarouselRequest:
+    UpdateBannerRequest:
       type: object
       properties:
         imageUrl: { type: string }
@@ -184,10 +184,41 @@ components:
         sortOrder: { type: integer }
         enabled: { type: boolean }
 
+    UpdateBannerStatusRequest:
+      type: object
+      required: [enabled]
+      properties:
+        enabled: { type: boolean }
+
+    UpdatePublishStatusRequest:
+      type: object
+      required: [published]
+      properties:
+        published: { type: boolean }
+
+    ReorderHomeItemsRequest:
+      type: object
+      required: [orderedIds]
+      properties:
+        orderedIds:
+          type: array
+          items: { type: string }
+
+    CreateFeaturedFromArtworksRequest:
+      type: object
+      required: [artworkIds]
+      description: |
+        从已有作品快照公开卡字段。只复制 imageUrl / title / studentDisplayName，
+        绝不复制 commentText / teacherComment / 点评。
+      properties:
+        artworkIds:
+          type: array
+          items: { type: string }
+
     CreateFeaturedArtworkRequest:
       type: object
       required: [imageUrl, title, studentDisplayName]
-      description: 不得提交 commentText / 点评 / 私人档案字段（即使提交也会被丢弃）。
+      description: 不得提交 commentText / teacherComment / 点评 / 私人档案字段（即使提交也会被丢弃）。
       properties:
         imageUrl: { type: string }
         title: { type: string }
@@ -263,7 +294,7 @@ paths:
                   logoUrl: { type: string, nullable: true }
                   watermarkText: { type: string, nullable: true }
 
-  /api/v1/admin/home/carousels:
+  /api/v1/admin/home/banners:
     get:
       tags: [AdminHome]
       summary: 管理端轮播列表（含未启用）
@@ -279,7 +310,7 @@ paths:
                 properties:
                   items:
                     type: array
-                    items: { $ref: '#/components/schemas/AdminCarousel' }
+                    items: { $ref: '#/components/schemas/AdminBanner' }
         '401':
           content:
             application/json:
@@ -298,20 +329,46 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/CreateCarouselRequest' }
+            schema: { $ref: '#/components/schemas/CreateBannerRequest' }
       responses:
         '201':
           description: 已创建
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/AdminCarousel' }
+              schema: { $ref: '#/components/schemas/AdminBanner' }
         '403':
           description: 非 admin
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiError' }
 
-  /api/v1/admin/home/carousels/{id}:
+  /api/v1/admin/home/banners/reorder:
+    patch:
+      tags: [AdminHome]
+      summary: 轮播排序
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReorderHomeItemsRequest' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminBanner' }
+        '403':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /api/v1/admin/home/banners/{id}:
     parameters:
       - name: id
         in: path
@@ -324,7 +381,7 @@ paths:
         '200':
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/AdminCarousel' }
+              schema: { $ref: '#/components/schemas/AdminBanner' }
         '404':
           content:
             application/json:
@@ -336,12 +393,12 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/UpdateCarouselRequest' }
+            schema: { $ref: '#/components/schemas/UpdateBannerRequest' }
       responses:
         '200':
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/AdminCarousel' }
+              schema: { $ref: '#/components/schemas/AdminBanner' }
         '403':
           content:
             application/json:
@@ -358,6 +415,31 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/OkResponse' }
+        '403':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /api/v1/admin/home/banners/{id}/status:
+    patch:
+      tags: [AdminHome]
+      summary: 轮播启停
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateBannerStatusRequest' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminBanner' }
         '403':
           content:
             application/json:
@@ -401,6 +483,54 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiError' }
+
+  /api/v1/admin/home/featured-artworks/from-artworks:
+    post:
+      tags: [AdminHome]
+      summary: 从作品快照公开卡（不复制点评）
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateFeaturedFromArtworksRequest' }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminFeaturedArtwork' }
+        '403':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /api/v1/admin/home/featured-artworks/reorder:
+    patch:
+      tags: [AdminHome]
+      summary: 优秀作品排序
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReorderHomeItemsRequest' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminFeaturedArtwork' }
 
   /api/v1/admin/home/featured-artworks/{id}:
     parameters:
@@ -450,6 +580,31 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ApiError' }
 
+  /api/v1/admin/home/featured-artworks/{id}/status:
+    patch:
+      tags: [AdminHome]
+      summary: 优秀作品草稿发布
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePublishStatusRequest' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminFeaturedArtwork' }
+        '403':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
   /api/v1/admin/home/courses:
     get:
       tags: [AdminHome]
@@ -488,6 +643,28 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiError' }
+
+  /api/v1/admin/home/courses/reorder:
+    patch:
+      tags: [AdminHome]
+      summary: 课程排序
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReorderHomeItemsRequest' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminCourse' }
 
   /api/v1/admin/home/courses/{id}:
     parameters:
@@ -532,6 +709,31 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/OkResponse' }
+        '403':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /api/v1/admin/home/courses/{id}/status:
+    patch:
+      tags: [AdminHome]
+      summary: 课程草稿发布
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePublishStatusRequest' }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCourse' }
         '403':
           content:
             application/json:

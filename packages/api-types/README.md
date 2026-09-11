@@ -5,9 +5,9 @@
 契约：
 
 - P0 [`docs/contracts/openapi-p0.yaml`](../../docs/contracts/openapi-p0.yaml)
-- P1 [`docs/contracts/openapi-p1.yaml`](../../docs/contracts/openapi-p1.yaml)（`PublicHome` / `P1_HOME_PATHS`）
+- P1 [`docs/contracts/openapi-p1-home.yaml`](../../docs/contracts/openapi-p1-home.yaml)（`PublicHome` / `P1_HOME_PATHS`）
 
-公开优秀作品卡字段仅 `id` / `imageUrl` / `title` / `studentDisplayName`，禁止 `commentText`。
+公开优秀作品卡字段仅 `id` / `imageUrl` / `title` / `studentDisplayName`，禁止 `commentText` / `teacherComment`。
 
 海报两个接口（禁止 URL 相同）：
 

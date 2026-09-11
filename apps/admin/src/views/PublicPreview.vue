@@ -12,7 +12,7 @@
       </div>
       <el-divider />
       <h3>轮播</h3>
-      <el-card v-for="item in data.carousels" :key="item.id" class="block" shadow="never">
+      <el-card v-for="item in data.banners" :key="item.id" class="block" shadow="never">
         <h4>{{ item.title }}</h4>
         <p>{{ item.subtitle }}</p>
       </el-card>
@@ -37,7 +37,7 @@ import { http } from '../api/http';
 
 const data = ref<PublicHome>({
   brand: { orgName: null, logoUrl: null },
-  carousels: [],
+  banners: [],
   featuredArtworks: [],
   courses: [],
 });

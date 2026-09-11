@@ -22,7 +22,7 @@ P0（本期可验收）：
 7. 品牌 `GET/PUT /admin/brand`、LOGO 上传；模板 key：`simple` | `frame` | `magazine`。
 8. 家长海报：`POST .../posters/preview` 只出预览；`POST .../posters` 出正式下载。无 LOGO → 400 `LOGO_NOT_CONFIGURED`；两 URL 必须不同。
 
-P1（US-P1-01，后端已按契约落地）：公开首页 `GET /api/v1/public/home`（未登录；仅已发布/启用）+ 管理端三块 `/admin/home/carousels|featured-artworks|courses`。公开优秀作品卡仅 `imageUrl`/`title`/`studentDisplayName`，禁止点评与私人档案。课表 / 考勤 / 活动报名仍不做。
+P1（US-P1-01，后端已按契约落地）：公开首页 `GET /api/v1/public/home`（未登录；`brand` + `banners` + `featuredArtworks` + `courses`，仅已发布/启用）+ 管理端 `/admin/home/banners|featured-artworks|courses`（CRUD + status + reorder；优秀作品可 `from-artworks`）。公开优秀作品卡仅 `imageUrl`/`title`/`studentDisplayName`，禁止点评与私人档案。课表 / 考勤 / 活动报名仍不做。
 
 非目标（后续）：活动报名完整流程、推送、语音点评、短视频、数据导出、支付。
 
@@ -53,7 +53,7 @@ packages/tokens   design/01 色板/字阶/间距
 packages/api-types  P0 /api/v1 DTO + 错误码（Mock 骨架）
 docs/api          契约变更
 docs/adr          架构决策记录
-docs/contracts    P0 OpenAPI（Prism / MSW）+ P1 US-P1-01 `openapi-p1.yaml`
+docs/contracts    P0 OpenAPI（Prism / MSW）+ P1 US-P1-01 `openapi-p1-home.yaml`
 docs/本机Docker调试一页纸.md
 docker-compose.yml
 .env.example

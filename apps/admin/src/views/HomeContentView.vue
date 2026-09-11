@@ -5,9 +5,9 @@
       轮播 / 优秀作品 / 课程三块。公开优秀作品卡只有图片、标题、学员展示名，不含点评。
     </p>
     <el-tabs v-model="tab">
-      <el-tab-pane label="轮播" name="carousels">
-        <el-button type="primary" @click="openCarousel()">新增轮播</el-button>
-        <el-table :data="carousels" stripe class="table">
+      <el-tab-pane label="轮播" name="banners">
+        <el-button type="primary" @click="openBanner()">新增轮播</el-button>
+        <el-table :data="banners" stripe class="table">
           <el-table-column prop="title" label="标题" />
           <el-table-column prop="sortOrder" label="排序" width="80" />
           <el-table-column label="启用" width="80">
@@ -15,8 +15,8 @@
           </el-table-column>
           <el-table-column label="操作" width="180">
             <template #default="{ row }">
-              <el-button text @click="openCarousel(row)">编辑</el-button>
-              <el-button text type="danger" @click="remove('/admin/home/carousels', row.id)">删除</el-button>
+              <el-button text @click="openBanner(row)">编辑</el-button>
+              <el-button text type="danger" @click="remove('/admin/home/banners', row.id)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -57,18 +57,18 @@
       </el-tab-pane>
     </el-tabs>
 
-    <el-dialog v-model="carouselVisible" :title="carouselForm.id ? '编辑轮播' : '新增轮播'">
+    <el-dialog v-model="bannerVisible" :title="bannerForm.id ? '编辑轮播' : '新增轮播'">
       <el-form label-width="90px">
-        <el-form-item label="图片 URL"><el-input v-model="carouselForm.imageUrl" /></el-form-item>
-        <el-form-item label="标题"><el-input v-model="carouselForm.title" /></el-form-item>
-        <el-form-item label="副标题"><el-input v-model="carouselForm.subtitle" /></el-form-item>
-        <el-form-item label="链接"><el-input v-model="carouselForm.linkUrl" /></el-form-item>
-        <el-form-item label="排序"><el-input-number v-model="carouselForm.sortOrder" /></el-form-item>
-        <el-form-item label="启用"><el-switch v-model="carouselForm.enabled" /></el-form-item>
+        <el-form-item label="图片 URL"><el-input v-model="bannerForm.imageUrl" /></el-form-item>
+        <el-form-item label="标题"><el-input v-model="bannerForm.title" /></el-form-item>
+        <el-form-item label="副标题"><el-input v-model="bannerForm.subtitle" /></el-form-item>
+        <el-form-item label="链接"><el-input v-model="bannerForm.linkUrl" /></el-form-item>
+        <el-form-item label="排序"><el-input-number v-model="bannerForm.sortOrder" /></el-form-item>
+        <el-form-item label="启用"><el-switch v-model="bannerForm.enabled" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="carouselVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveCarousel">保存</el-button>
+        <el-button @click="bannerVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveBanner">保存</el-button>
       </template>
     </el-dialog>
 
@@ -105,19 +105,19 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
-import type { AdminCarousel, AdminCourse, AdminFeaturedArtwork } from '@art-edu/api-types';
+import type { AdminBanner, AdminCourse, AdminFeaturedArtwork } from '@art-edu/api-types';
 import { http } from '../api/http';
 
-const tab = ref('carousels');
-const carousels = ref<AdminCarousel[]>([]);
+const tab = ref('banners');
+const banners = ref<AdminBanner[]>([]);
 const featured = ref<AdminFeaturedArtwork[]>([]);
 const courses = ref<AdminCourse[]>([]);
 
-const carouselVisible = ref(false);
+const bannerVisible = ref(false);
 const featuredVisible = ref(false);
 const courseVisible = ref(false);
 
-const carouselForm = reactive({
+const bannerForm = reactive({
   id: '',
   imageUrl: '',
   title: '',
@@ -145,17 +145,17 @@ const courseForm = reactive({
 
 async function load() {
   const [c, f, k] = await Promise.all([
-    http.get('/admin/home/carousels'),
+    http.get('/admin/home/banners'),
     http.get('/admin/home/featured-artworks'),
     http.get('/admin/home/courses'),
   ]);
-  carousels.value = c.data.items ?? [];
+  banners.value = c.data.items ?? [];
   featured.value = f.data.items ?? [];
   courses.value = k.data.items ?? [];
 }
 
-function openCarousel(row?: AdminCarousel) {
-  Object.assign(carouselForm, {
+function openBanner(row?: AdminBanner) {
+  Object.assign(bannerForm, {
     id: row?.id ?? '',
     imageUrl: row?.imageUrl ?? '',
     title: row?.title ?? '',
@@ -164,7 +164,7 @@ function openCarousel(row?: AdminCarousel) {
     sortOrder: row?.sortOrder ?? 0,
     enabled: row?.enabled ?? false,
   });
-  carouselVisible.value = true;
+  bannerVisible.value = true;
 }
 
 function openFeatured(row?: AdminFeaturedArtwork) {
@@ -191,22 +191,22 @@ function openCourse(row?: AdminCourse) {
   courseVisible.value = true;
 }
 
-async function saveCarousel() {
+async function saveBanner() {
   const body = {
-    imageUrl: carouselForm.imageUrl,
-    title: carouselForm.title || null,
-    subtitle: carouselForm.subtitle || null,
-    linkUrl: carouselForm.linkUrl || null,
-    sortOrder: carouselForm.sortOrder,
-    enabled: carouselForm.enabled,
+    imageUrl: bannerForm.imageUrl,
+    title: bannerForm.title || null,
+    subtitle: bannerForm.subtitle || null,
+    linkUrl: bannerForm.linkUrl || null,
+    sortOrder: bannerForm.sortOrder,
+    enabled: bannerForm.enabled,
   };
-  if (carouselForm.id) {
-    await http.patch(`/admin/home/carousels/${carouselForm.id}`, body);
+  if (bannerForm.id) {
+    await http.patch(`/admin/home/banners/${bannerForm.id}`, body);
   } else {
-    await http.post('/admin/home/carousels', body);
+    await http.post('/admin/home/banners', body);
   }
   ElMessage.success('已保存');
-  carouselVisible.value = false;
+  bannerVisible.value = false;
   await load();
 }
 

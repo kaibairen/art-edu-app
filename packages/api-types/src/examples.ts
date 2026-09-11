@@ -152,7 +152,7 @@ export const EXAMPLE_PUBLIC_HOME: PublicHome = {
     orgName: '星光美术教室',
     logoUrl: null,
   },
-  carousels: [
+  banners: [
     {
       id: 'car-1',
       imageUrl: 'http://localhost:4010/files/home/banner-autumn.jpg',

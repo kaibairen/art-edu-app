@@ -1,13 +1,9 @@
+import { HomeBanner, HomeCourse, HomeFeaturedArtwork } from '@prisma/client';
 import {
-  HomeCarousel,
-  HomeCourse,
-  HomeFeaturedArtwork,
-} from '@prisma/client';
-import {
-  AdminCarouselDto,
+  AdminBannerDto,
   AdminCourseDto,
   AdminFeaturedArtworkDto,
-  PublicCarouselDto,
+  PublicBannerDto,
   PublicCourseDto,
   PublicFeaturedArtworkDto,
   PublicHomeBrandDto,
@@ -15,7 +11,7 @@ import {
 } from '@art-edu/shared';
 import { toIso } from '../common/mappers';
 
-export function toPublicCarousel(row: HomeCarousel): PublicCarouselDto {
+export function toPublicBanner(row: HomeBanner): PublicBannerDto {
   return {
     id: row.id,
     imageUrl: row.imageUrl,
@@ -50,7 +46,7 @@ export function toPublicCourse(row: HomeCourse): PublicCourseDto {
 export function toPublicHome(params: {
   orgName: string | null;
   logoUrl: string | null;
-  carousels: HomeCarousel[];
+  banners: HomeBanner[];
   featuredArtworks: HomeFeaturedArtwork[];
   courses: HomeCourse[];
 }): PublicHomeDto {
@@ -60,15 +56,15 @@ export function toPublicHome(params: {
   };
   return {
     brand,
-    carousels: params.carousels.map(toPublicCarousel),
+    banners: params.banners.map(toPublicBanner),
     featuredArtworks: params.featuredArtworks.map(toPublicFeaturedArtwork),
     courses: params.courses.map(toPublicCourse),
   };
 }
 
-export function toAdminCarousel(row: HomeCarousel): AdminCarouselDto {
+export function toAdminBanner(row: HomeBanner): AdminBannerDto {
   return {
-    ...toPublicCarousel(row),
+    ...toPublicBanner(row),
     enabled: row.enabled,
     createdAt: toIso(row.createdAt),
     updatedAt: toIso(row.updatedAt),

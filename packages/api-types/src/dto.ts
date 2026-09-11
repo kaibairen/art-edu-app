@@ -285,7 +285,7 @@ export interface PublicHomeBrand {
   logoUrl: string | null;
 }
 
-export interface PublicCarousel {
+export interface PublicBanner {
   id: string;
   imageUrl: string;
   title: string | null;
@@ -312,12 +312,12 @@ export interface PublicCourse {
 
 export interface PublicHome {
   brand: PublicHomeBrand;
-  carousels: PublicCarousel[];
+  banners: PublicBanner[];
   featuredArtworks: PublicFeaturedArtwork[];
   courses: PublicCourse[];
 }
 
-export interface AdminCarousel extends PublicCarousel {
+export interface AdminBanner extends PublicBanner {
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -337,7 +337,7 @@ export interface AdminCourse extends PublicCourse {
   updatedAt: string;
 }
 
-export interface CreateCarouselRequest {
+export interface CreateBannerRequest {
   imageUrl: string;
   title?: string | null;
   subtitle?: string | null;
@@ -346,13 +346,29 @@ export interface CreateCarouselRequest {
   enabled?: boolean;
 }
 
-export interface UpdateCarouselRequest {
+export interface UpdateBannerRequest {
   imageUrl?: string;
   title?: string | null;
   subtitle?: string | null;
   linkUrl?: string | null;
   sortOrder?: number;
   enabled?: boolean;
+}
+
+export interface UpdateBannerStatusRequest {
+  enabled: boolean;
+}
+
+export interface UpdatePublishStatusRequest {
+  published: boolean;
+}
+
+export interface ReorderHomeItemsRequest {
+  orderedIds: string[];
+}
+
+export interface CreateFeaturedFromArtworksRequest {
+  artworkIds: string[];
 }
 
 export interface CreateFeaturedArtworkRequest {
@@ -395,10 +411,18 @@ export interface HomeAdminList<T> {
 export const P1_HOME_PATHS = {
   publicHome: '/public/home',
   publicSettings: '/public/settings',
-  adminCarousels: '/admin/home/carousels',
-  adminCarousel: (id: string) => `/admin/home/carousels/${id}`,
+  adminBanners: '/admin/home/banners',
+  adminBanner: (id: string) => `/admin/home/banners/${id}`,
+  adminBannerStatus: (id: string) => `/admin/home/banners/${id}/status`,
+  adminBannersReorder: '/admin/home/banners/reorder',
   adminFeaturedArtworks: '/admin/home/featured-artworks',
   adminFeaturedArtwork: (id: string) => `/admin/home/featured-artworks/${id}`,
+  adminFeaturedArtworkStatus: (id: string) =>
+    `/admin/home/featured-artworks/${id}/status`,
+  adminFeaturedArtworksReorder: '/admin/home/featured-artworks/reorder',
+  adminFeaturedFromArtworks: '/admin/home/featured-artworks/from-artworks',
   adminCourses: '/admin/home/courses',
   adminCourse: (id: string) => `/admin/home/courses/${id}`,
+  adminCourseStatus: (id: string) => `/admin/home/courses/${id}/status`,
+  adminCoursesReorder: '/admin/home/courses/reorder',
 } as const;

@@ -1,6 +1,6 @@
--- US-P1-01：首页拆成轮播 / 优秀作品 / 课程。发布过滤在接口层。
+-- US-P1-01：首页拆成轮播 banner / 优秀作品 / 课程。发布过滤在接口层。
 
-CREATE TABLE "HomeCarousel" (
+CREATE TABLE "HomeBanner" (
     "id" TEXT NOT NULL,
     "imageUrl" TEXT NOT NULL,
     "title" TEXT,
@@ -11,7 +11,7 @@ CREATE TABLE "HomeCarousel" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "HomeCarousel_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "HomeBanner_pkey" PRIMARY KEY ("id")
 );
 
 CREATE TABLE "HomeFeaturedArtwork" (
@@ -40,14 +40,14 @@ CREATE TABLE "HomeCourse" (
     CONSTRAINT "HomeCourse_pkey" PRIMARY KEY ("id")
 );
 
-CREATE INDEX "HomeCarousel_enabled_sortOrder_idx" ON "HomeCarousel"("enabled", "sortOrder");
+CREATE INDEX "HomeBanner_enabled_sortOrder_idx" ON "HomeBanner"("enabled", "sortOrder");
 CREATE INDEX "HomeFeaturedArtwork_published_sortOrder_idx" ON "HomeFeaturedArtwork"("published", "sortOrder");
 CREATE INDEX "HomeCourse_published_sortOrder_idx" ON "HomeCourse"("published", "sortOrder");
 
-INSERT INTO "HomeCarousel" ("id", "imageUrl", "title", "subtitle", "linkUrl", "sortOrder", "enabled", "createdAt", "updatedAt")
+INSERT INTO "HomeBanner" ("id", "imageUrl", "title", "subtitle", "linkUrl", "sortOrder", "enabled", "createdAt", "updatedAt")
 SELECT
     "id",
-    COALESCE(NULLIF("imageUrl", ''), 'https://example.invalid/carousel-placeholder.jpg'),
+    COALESCE(NULLIF("imageUrl", ''), 'https://example.invalid/banner-placeholder.jpg'),
     "title",
     "body",
     NULL,

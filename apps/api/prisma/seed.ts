@@ -191,14 +191,14 @@ async function main() {
     });
   }
 
-  const [carouselCount, featuredCount, courseCount] = await Promise.all([
-    prisma.homeCarousel.count(),
+  const [bannerCount, featuredCount, courseCount] = await Promise.all([
+    prisma.homeBanner.count(),
     prisma.homeFeaturedArtwork.count(),
     prisma.homeCourse.count(),
   ]);
 
-  if (carouselCount === 0) {
-    await prisma.homeCarousel.createMany({
+  if (bannerCount === 0) {
+    await prisma.homeBanner.createMany({
       data: [
         {
           imageUrl: '/files/home/banner-autumn.jpg',

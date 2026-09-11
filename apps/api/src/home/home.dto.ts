@@ -1,5 +1,8 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
   IsBoolean,
   IsInt,
   IsOptional,
@@ -9,7 +12,7 @@ import {
 } from 'class-validator';
 import { COURSE_SUMMARY_MAX_LENGTH } from '@art-edu/shared';
 
-export class CreateCarouselDto {
+export class CreateBannerDto {
   @IsString()
   @MaxLength(500)
   imageUrl!: string;
@@ -40,7 +43,7 @@ export class CreateCarouselDto {
   enabled?: boolean;
 }
 
-export class UpdateCarouselDto {
+export class UpdateBannerDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
@@ -70,6 +73,11 @@ export class UpdateCarouselDto {
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;
+}
+
+export class UpdateBannerStatusDto {
+  @IsBoolean()
+  enabled!: boolean;
 }
 
 export class CreateFeaturedArtworkDto {
@@ -121,6 +129,27 @@ export class UpdateFeaturedArtworkDto {
   @IsOptional()
   @IsBoolean()
   published?: boolean;
+}
+
+export class UpdatePublishStatusDto {
+  @IsBoolean()
+  published!: boolean;
+}
+
+export class CreateFeaturedFromArtworksDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  artworkIds!: string[];
+}
+
+export class ReorderHomeItemsDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(100)
+  @IsString({ each: true })
+  orderedIds!: string[];
 }
 
 export class CreateCourseDto {

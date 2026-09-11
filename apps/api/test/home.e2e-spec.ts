@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Role, UserStatus } from '@prisma/client';
+import { Role, StudentStatus, UserStatus } from '@prisma/client';
 import { execSync } from 'child_process';
 import { join } from 'path';
 import request from 'supertest';
@@ -62,7 +62,7 @@ describe('US-P1-01 public home e2e', () => {
     await prisma.artwork.deleteMany();
     await prisma.refreshToken.deleteMany();
     await prisma.parentStudent.deleteMany();
-    await prisma.homeCarousel.deleteMany();
+    await prisma.homeBanner.deleteMany();
     await prisma.homeFeaturedArtwork.deleteMany();
     await prisma.homeCourse.deleteMany();
     await prisma.student.deleteMany();
@@ -122,11 +122,11 @@ describe('US-P1-01 public home e2e', () => {
     return res.body.accessToken as string;
   }
 
-  it('hides unpublished or disabled items and never leaks comment fields', async () => {
+  it('hides unpublished items and never leaks comment fields on public cards', async () => {
     const adminToken = await token(phones.admin);
 
-    await request(app.getHttpServer())
-      .post(`${prefix}/admin/home/carousels`)
+    const enabledBanner = await request(app.getHttpServer())
+      .post(`${prefix}/admin/home/banners`)
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
         imageUrl: '/files/home/on.jpg',
@@ -135,8 +135,8 @@ describe('US-P1-01 public home e2e', () => {
         sortOrder: 0,
       })
       .expect(201);
-    await request(app.getHttpServer())
-      .post(`${prefix}/admin/home/carousels`)
+    const disabledBanner = await request(app.getHttpServer())
+      .post(`${prefix}/admin/home/banners`)
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
         imageUrl: '/files/home/off.jpg',
@@ -145,6 +145,14 @@ describe('US-P1-01 public home e2e', () => {
         sortOrder: 1,
       })
       .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`${prefix}/admin/home/banners/reorder`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        orderedIds: [enabledBanner.body.id, disabledBanner.body.id],
+      })
+      .expect(200);
 
     const featuredDraft = await request(app.getHttpServer())
       .post(`${prefix}/admin/home/featured-artworks`)
@@ -155,21 +163,47 @@ describe('US-P1-01 public home e2e', () => {
         studentDisplayName: '内部',
         published: false,
         commentText: '这条点评不得入库也不得公开',
+        teacherComment: '同样禁止',
       })
       .expect(201);
     expect(featuredDraft.body.published).toBe(false);
     expect(featuredDraft.body).not.toHaveProperty('commentText');
+    expect(featuredDraft.body).not.toHaveProperty('teacherComment');
+
+    const teacher = await prisma.user.findUniqueOrThrow({
+      where: { phone: phones.teacher },
+    });
+    const student = await prisma.student.create({
+      data: { name: '小明', className: '创意班', status: StudentStatus.active },
+    });
+    const artwork = await prisma.artwork.create({
+      data: {
+        studentId: student.id,
+        teacherId: teacher.id,
+        imageUrl: '/files/aw-private.jpg',
+        thumbUrl: '/files/aw-private-thumb.jpg',
+        title: '春天的树',
+        createdAt: new Date('2026-09-01T00:00:00.000Z'),
+        commentText: '构图很稳，这是私人点评',
+      },
+    });
+
+    const fromArtworks = await request(app.getHttpServer())
+      .post(`${prefix}/admin/home/featured-artworks/from-artworks`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ artworkIds: [artwork.id] })
+      .expect(201);
+    expect(fromArtworks.body.items).toHaveLength(1);
+    expect(fromArtworks.body.items[0]).not.toHaveProperty('commentText');
+    expect(fromArtworks.body.items[0].studentDisplayName).toBe('小明');
 
     await request(app.getHttpServer())
-      .post(`${prefix}/admin/home/featured-artworks`)
+      .patch(
+        `${prefix}/admin/home/featured-artworks/${fromArtworks.body.items[0].id}/status`,
+      )
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({
-        imageUrl: '/files/home/feat.jpg',
-        title: '春天的树',
-        studentDisplayName: '小明',
-        published: true,
-      })
-      .expect(201);
+      .send({ published: true })
+      .expect(200);
 
     await request(app.getHttpServer())
       .post(`${prefix}/admin/home/courses`)
@@ -181,7 +215,7 @@ describe('US-P1-01 public home e2e', () => {
         body: '长文不得出现',
       })
       .expect(201);
-    await request(app.getHttpServer())
+    const draftCourse = await request(app.getHttpServer())
       .post(`${prefix}/admin/home/courses`)
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
@@ -190,6 +224,11 @@ describe('US-P1-01 public home e2e', () => {
         published: false,
       })
       .expect(201);
+    await request(app.getHttpServer())
+      .patch(`${prefix}/admin/home/courses/${draftCourse.body.id}/status`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ published: false })
+      .expect(200);
 
     const adminList = await request(app.getHttpServer())
       .get(`${prefix}/admin/home/featured-artworks`)
@@ -202,7 +241,7 @@ describe('US-P1-01 public home e2e', () => {
       .expect(200);
 
     expect(pub.body.brand.logoUrl).toBeNull();
-    expect(pub.body.carousels.map((c: { title: string }) => c.title)).toEqual([
+    expect(pub.body.banners.map((c: { title: string }) => c.title)).toEqual([
       '启用轮播',
     ]);
     expect(pub.body.featuredArtworks).toHaveLength(1);
@@ -213,8 +252,9 @@ describe('US-P1-01 public home e2e', () => {
     expect(card.title).toBe('春天的树');
     expect(card.studentDisplayName).toBe('小明');
     expect(card).not.toHaveProperty('commentText');
+    expect(card).not.toHaveProperty('teacherComment');
     expect(card).not.toHaveProperty('comment');
-    expect(JSON.stringify(card)).not.toMatch(/点评|commentText/);
+    expect(JSON.stringify(card)).not.toMatch(/点评|commentText|teacherComment/);
 
     expect(pub.body.courses).toHaveLength(1);
     expect(pub.body.courses[0].title).toBe('公开水彩');
@@ -242,12 +282,12 @@ describe('US-P1-01 public home e2e', () => {
     }
 
     await request(app.getHttpServer())
-      .post(`${prefix}/admin/home/carousels`)
+      .post(`${prefix}/admin/home/banners`)
       .send({ imageUrl: '/files/x.jpg' })
       .expect(401);
 
     await request(app.getHttpServer())
-      .patch(`${prefix}/admin/home/courses/does-not-exist`)
+      .patch(`${prefix}/admin/home/courses/does-not-exist/status`)
       .set('Authorization', `Bearer ${teacherToken}`)
       .send({ published: true })
       .expect(403);

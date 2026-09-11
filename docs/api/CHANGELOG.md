@@ -6,15 +6,15 @@
 
 | 块 | 公开读 | 管理写 |
 | --- | --- | --- |
-| 轮播 | 仅 `enabled=true`：`imageUrl` `title?` `subtitle?` `linkUrl?` `sortOrder` | `/admin/home/carousels` CRUD + 启停/排序 |
-| 优秀作品 | 仅 `published=true`：`imageUrl` `title` `studentDisplayName` | `/admin/home/featured-artworks` CRUD + 草稿发布/排序 |
-| 课程 | 仅 `published=true`：`title` `summary` `coverUrl?` | `/admin/home/courses` CRUD + 草稿发布/排序 |
+| 轮播 banner | 仅 `enabled=true`：`imageUrl` `title?` `subtitle?` `linkUrl?` `sortOrder` | `/admin/home/banners` CRUD + `/status` + `/reorder` |
+| 优秀作品 | 仅 `published=true`：`imageUrl` `title` `studentDisplayName` | `/admin/home/featured-artworks` CRUD + `/status` + `/reorder` + `/from-artworks` |
+| 课程 | 仅 `published=true`：`title` `summary` `coverUrl?` | `/admin/home/courses` CRUD + `/status` + `/reorder` |
 
 公开聚合：`GET /api/v1/public/home`（无鉴权）。发布过滤在接口层。
 
-**公开优秀作品卡禁止字段**：`commentText`、点评、`studentId`、`note` 等私人档案。课程**无长文 `body`**（`summary` ≤ 200）。无 LOGO 不阻断（`brand.logoUrl` 可为 null）。不做课表 / 考勤 / 活动报名。
+**公开优秀作品卡禁止字段**：`commentText`、`teacherComment`、点评、`studentId`、`note` 等私人档案。`from-artworks` 只快照公开三字段，不复制点评。课程**无长文 `body`**（`summary` ≤ 200）。无 LOGO 不阻断（`brand.logoUrl` 可为 null）。不做课表 / 考勤 / 活动报名。
 
-契约：[`docs/contracts/openapi-p1.yaml`](../contracts/openapi-p1.yaml)；类型：`@art-edu/api-types` 的 `PublicHome` / `P1_HOME_PATHS`。
+契约：[`docs/contracts/openapi-p1-home.yaml`](../contracts/openapi-p1-home.yaml)；类型：`@art-edu/api-types` 的 `PublicHome` / `P1_HOME_PATHS`。
 
 ---
 
