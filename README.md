@@ -125,10 +125,13 @@ Swagger：<http://localhost:3000/api/docs>
 ## 测试
 
 ```bash
-export DATABASE_URL=postgresql://artedu:artedu@localhost:5432/artedu?schema=public
 npm run test:api    # 海报模板单测
+# 默认连 artedu_test，避免清空演示库；请先创建该库或自行设置 DATABASE_URL
+createdb -U artedu artedu_test 2>/dev/null || true
 npm run test:e2e    # 越权 / 上传可见 / 三模板海报 / 管理端设置
 ```
+
+e2e 会清空所连库的业务表。演示库请用 `.env` 中的 `artedu`，测试请用 `artedu_test`。
 
 e2e 覆盖验收项：家长越权失败、教师上传家长可见、三模板海报 recipe 含姓名时间 LOGO 水印、管理端可改水印与首页。
 
