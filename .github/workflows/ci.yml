@@ -20,9 +20,10 @@ permissions:
 env:
   NODE_ENV: test
   API_PORT: 3000
-  API_PREFIX: api
+  API_PREFIX: api/v1
   JWT_SECRET: change-me-in-production-art-edu-jwt
-  JWT_EXPIRES_IN: 7d
+  JWT_EXPIRES_IN: 2h
+  JWT_REFRESH_DAYS: 30
   DATABASE_URL: postgresql://artedu:artedu@127.0.0.1:5432/artedu_test?schema=public
   STORAGE_DRIVER: local
   STORAGE_LOCAL_DIR: ./storage
@@ -30,7 +31,7 @@ env:
   CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
   SEED_ADMIN_PHONE: "13800000000"
   SEED_ADMIN_PASSWORD: Admin123
-  VITE_API_BASE_URL: http://localhost:3000/api
+  VITE_API_BASE_URL: http://localhost:3000/api/v1
 
 jobs:
   test-api:

@@ -42,18 +42,20 @@ function onLogout() {
   min-height: 100%;
 }
 .aside {
-  background: #fff8f0;
-  border-right: 1px solid #eedfd0;
+  background: var(--color-bg);
+  border-right: 1px solid var(--color-border);
 }
 .brand {
-  padding: 20px 16px;
-  font-weight: 700;
+  padding: 20px var(--space-4);
+  font-weight: var(--font-title-weight);
+  color: var(--color-brand);
 }
 .header {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  background: #fff;
+  gap: var(--space-3);
+  background: var(--color-bg);
+  color: var(--color-ink-secondary);
 }
 </style>

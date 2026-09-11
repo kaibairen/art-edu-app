@@ -11,6 +11,7 @@
   "dependencies": {
     "@art-edu/api-types": "0.1.0",
     "@art-edu/shared": "0.1.0",
+    "@art-edu/tokens": "0.1.0",
     "axios": "^1.8.4",
     "element-plus": "^2.9.7",
     "pinia": "^3.0.2",

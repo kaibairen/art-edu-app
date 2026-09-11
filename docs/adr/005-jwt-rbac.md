@@ -5,10 +5,11 @@
 
 ## 决策
 
-- 登录签发 JWT（`sub` / `role` / `name`）。
+- 登录签发 JWT（`sub` / `role` / `displayName`）与 refresh token。
 - 全局 `JwtAuthGuard` + `RolesGuard`。
 - 角色：`admin` | `teacher` | `parent`。
-- **家长数据隔离不依赖前端过滤**：`AccessService` 是家长查询的唯一入口，未绑定一律 403。
+- **家长/教师数据隔离不依赖前端过滤**：`AccessService` 是查询唯一入口。
+- P0 契约（API-MVP-P0-0.1）将越权读从预研的 403 改为 **404 `NOT_FOUND`「无法查看」**，详见 [docs/api/CHANGELOG.md](../api/CHANGELOG.md)。
 
 ## 来源
 

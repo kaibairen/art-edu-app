@@ -42,6 +42,8 @@ flutter run -d chrome -t lib/main_parent.dart \
 
 家长端查询一律走 `/parent/*`，服务端按绑定强制过滤；未绑定孩子会返回 403。
 
+品牌色与字阶来自 design/01，见 `lib/src/tokens.dart`（与 `@art-edu/tokens` 对齐，主色 `#2F6FED`）。
+
 ## P0 Mock client 桩（业务页冻结）
 
 FRONTEND_READY 暂停。新增的 `lib/src/p0/` **不要**接到现有 Screen。
