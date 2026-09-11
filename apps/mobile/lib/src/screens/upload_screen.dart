@@ -16,12 +16,26 @@ class UploadScreen extends StatefulWidget {
 
 class _UploadScreenState extends State<UploadScreen> {
   final title = TextEditingController(text: '课堂写生');
-  final createdAt = TextEditingController(text: DateTime.now().toIso8601String());
   final courseTheme = TextEditingController();
   final comment = TextEditingController();
+  DateTime createdAt = DateTime.now();
   XFile? file;
   String? error;
   bool loading = false;
+
+  @override
+  void dispose() {
+    title.dispose();
+    courseTheme.dispose();
+    comment.dispose();
+    super.dispose();
+  }
+
+  String get createdAtLabel {
+    String two(int n) => n.toString().padLeft(2, '0');
+    final d = createdAt;
+    return '${d.year}-${two(d.month)}-${two(d.day)} ${two(d.hour)}:${two(d.minute)}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,17 +45,19 @@ class _UploadScreenState extends State<UploadScreen> {
         padding: const EdgeInsets.all(ArtEduSpace.s24),
         children: [
           TextField(controller: title, decoration: const InputDecoration(labelText: '标题')),
-          TextField(
-            controller: createdAt,
-            decoration: const InputDecoration(labelText: '创作时间（ISO，如 2026-09-11T10:00:00.000Z）'),
+          const SizedBox(height: ArtEduSpace.s8),
+          InkWell(
+            onTap: _pickCreatedAt,
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: '创作时间',
+                suffixIcon: Icon(Icons.event),
+              ),
+              child: Text(createdAtLabel, style: ArtEduTypography.body),
+            ),
           ),
           TextField(controller: courseTheme, decoration: const InputDecoration(labelText: '课程主题（可选）')),
-          TextField(controller: comment, decoration: const InputDecoration(labelText: '文字点评（可选，单独接口）')),
-          const SizedBox(height: ArtEduSpace.s8),
-          Text(
-            '语音 / 视频点评：非本期。',
-            style: ArtEduTypography.caption.copyWith(color: ArtEduColors.inkTertiary),
-          ),
+          TextField(controller: comment, decoration: const InputDecoration(labelText: '文字点评（可选）')),
           const SizedBox(height: ArtEduSpace.s12),
           OutlinedButton(
             onPressed: () async {
@@ -62,6 +78,30 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
+  Future<void> _pickCreatedAt() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: createdAt,
+      firstDate: DateTime(2018),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(createdAt),
+    );
+    if (!mounted) return;
+    setState(() {
+      createdAt = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time?.hour ?? createdAt.hour,
+        time?.minute ?? createdAt.minute,
+      );
+    });
+  }
+
   Future<void> _submit() async {
     if (file == null) {
       setState(() => error = '请先选择图片');
@@ -76,7 +116,7 @@ class _UploadScreenState extends State<UploadScreen> {
       final artwork = await widget.api.uploadArtwork(
         studentId: widget.student.id,
         title: title.text.trim(),
-        createdAt: createdAt.text.trim(),
+        createdAt: createdAt.toUtc().toIso8601String(),
         courseTheme: courseTheme.text.trim(),
         bytes: bytes,
         filename: file!.name,

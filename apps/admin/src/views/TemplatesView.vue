@@ -1,9 +1,7 @@
 <template>
   <div>
     <h2 class="page-title">海报模板</h2>
-    <p class="page-hint">
-      对外名固定为 简约 / 画框 / 杂志（key：simple / frame / magazine）。勿再使用 classic / gallery / festival。
-    </p>
+    <p class="page-hint">海报模板对外展示为「简约」「画框」「杂志」三种，可改显示名或停用。</p>
     <el-table :data="templates" v-loading="loading">
       <el-table-column prop="key" label="键" width="120" />
       <el-table-column label="对外名" width="120">

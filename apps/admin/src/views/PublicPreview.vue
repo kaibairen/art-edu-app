@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2 class="page-title">公开首页预览</h2>
-    <p class="page-hint">非 P0 验收。GET /api/v1/public/home。</p>
+    <p class="page-hint">机构公开首页预览即将开放，当前仅供内部查看。</p>
     <el-card>
       <div class="hero">
         <el-image v-if="data.settings?.logoUrl" :src="data.settings.logoUrl" class="logo" />

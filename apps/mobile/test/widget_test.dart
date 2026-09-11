@@ -4,6 +4,7 @@ import 'package:art_edu_mobile/src/app.dart';
 import 'package:art_edu_mobile/src/models.dart';
 import 'package:art_edu_mobile/src/screens/poster_preview_screen.dart';
 import 'package:art_edu_mobile/src/screens/poster_result_screen.dart';
+import 'package:art_edu_mobile/src/screens/upload_screen.dart';
 import 'package:flutter/material.dart';
 
 class _FakeApiClient extends ApiClient {
@@ -17,6 +18,15 @@ class _FakeApiClient extends ApiClient {
     );
   }
 }
+
+ArtworkItem _demoArtwork() => ArtworkItem(
+      id: 'aw-demo',
+      studentId: 'st-1',
+      studentName: '小明',
+      imageUrl: 'http://x/art.png',
+      thumbUrl: 'http://x/art-thumb.png',
+      createdAt: '2026-09-11',
+    );
 
 void main() {
   testWidgets('parent login screen renders', (tester) async {
@@ -36,19 +46,31 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: PosterPreviewScreen(
         api: _FakeApiClient(),
-        artwork: ArtworkItem(
-          id: 'aw-demo',
-          studentId: 'st-1',
-          studentName: '小明',
-          imageUrl: 'http://x/art.png',
-          thumbUrl: 'http://x/art-thumb.png',
-          createdAt: '2026-09-11',
-        ),
+        artwork: _demoArtwork(),
         studentName: '小明',
       ),
     ));
     expect(find.text('生成并下载'), findsOneWidget);
     expect(find.text('生成正式成片并进入结果页'), findsNothing);
+    expect(find.text('点模板可切换预览'), findsOneWidget);
+  });
+
+  testWidgets('parent preview hides api hints when not debug', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: PosterPreviewScreen(
+        api: _FakeApiClient(),
+        artwork: _demoArtwork(),
+        studentName: '小明',
+        showDebugApiHints: false,
+      ),
+    ));
+    await tester.pump();
+    expect(find.text('生成并下载'), findsOneWidget);
+    expect(find.text('点模板可切换预览'), findsOneWidget);
+    expect(find.textContaining('previewUrl'), findsNothing);
+    expect(find.textContaining('downloadUrl'), findsNothing);
+    expect(find.textContaining('接口'), findsNothing);
+    expect(find.textContaining('POST'), findsNothing);
   });
 
   testWidgets('poster result page rejects identical urls', (tester) async {
@@ -72,9 +94,44 @@ void main() {
         studentName: '小明',
       ),
     ));
-    expect(find.text('海报结果'), findsOneWidget);
+    expect(find.text('已保存'), findsOneWidget);
     expect(find.textContaining('简约'), findsOneWidget);
     expect(find.textContaining('downloadUrl'), findsWidgets);
+    expect(find.text('分享'), findsOneWidget);
+    expect(find.text('再下一张'), findsOneWidget);
+    expect(find.text('返回作品'), findsOneWidget);
+  });
+
+  testWidgets('parent result hides urls and keeps actions', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: PosterResultScreen(
+        downloadUrl: 'http://x/aw-demo-simple.png',
+        previewUrl: 'http://x/aw-demo-simple-preview.png',
+        templateKey: 'simple',
+        studentName: '小明',
+        showDebugApiHints: false,
+      ),
+    ));
+    expect(find.text('已保存'), findsOneWidget);
+    expect(find.text('分享'), findsOneWidget);
+    expect(find.text('再下一张'), findsOneWidget);
+    expect(find.text('返回作品'), findsOneWidget);
+    expect(find.textContaining('downloadUrl'), findsNothing);
+    expect(find.textContaining('previewUrl'), findsNothing);
+  });
+
+  testWidgets('upload screen uses datetime picker not ISO field', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: UploadScreen(
+        api: _FakeApiClient(),
+        student: StudentItem(id: 's-ming', name: '小明', className: '创意水彩班'),
+      ),
+    ));
+    expect(find.text('创作时间'), findsOneWidget);
+    expect(find.textContaining('ISO'), findsNothing);
+    expect(find.textContaining('单独接口'), findsNothing);
+    expect(find.textContaining('非本期'), findsNothing);
+    expect(find.text('文字点评（可选）'), findsOneWidget);
   });
 
   test('poster template labels are 简约/画框/杂志', () {

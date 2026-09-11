@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../api_client.dart';
@@ -82,11 +83,13 @@ class _ArtworkScreenState extends State<ArtworkScreen> {
               },
               child: const Text('制作海报（预览）'),
             ),
-            const SizedBox(height: ArtEduSpace.s8),
-            Text(
-              '预览、下载、结果页三分离。本页不直接下载成片。',
-              style: ArtEduTypography.caption.copyWith(color: ArtEduColors.inkTertiary),
-            ),
+            if (kDebugMode) ...[
+              const SizedBox(height: ArtEduSpace.s8),
+              Text(
+                '预览、下载、结果页三分离。本页不直接下载成片。',
+                style: ArtEduTypography.caption.copyWith(color: ArtEduColors.inkTertiary),
+              ),
+            ],
           ],
         ],
       ),
