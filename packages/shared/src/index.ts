@@ -140,8 +140,12 @@ export interface BrandConfigDto {
   templates: BrandTemplateDto[];
 }
 
-export interface PosterDto {
+export interface PosterPreviewDto {
   previewUrl: string;
+  templateKey: PosterTemplateKey;
+}
+
+export interface PosterDownloadDto {
   downloadUrl: string;
   templateKey: PosterTemplateKey;
 }

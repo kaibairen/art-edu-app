@@ -17,7 +17,7 @@ P0（本期可验收）：
 5. 家长-学员绑定；重复绑定 409 `CONFLICT_BINDING`。
 6. 作品字段：`title` / `createdAt` / `commentText` / `courseTheme` / `thumbUrl`。
 7. 品牌 `GET/PUT /admin/brand`、LOGO 上传；模板 key：`simple` | `frame` | `magazine`。
-8. 家长生成海报：无 LOGO → 400 `LOGO_NOT_CONFIGURED`；`previewUrl` 必须等于 `downloadUrl`。
+8. 家长海报：`POST .../posters/preview` 只出预览；`POST .../posters` 出正式下载。无 LOGO → 400 `LOGO_NOT_CONFIGURED`；两 URL 必须不同。
 
 非本期验收：首页运营 `/admin/home-contents`、`GET /public/home`、课表。这些接口可保留，但不纳入 P0。
 
@@ -118,7 +118,7 @@ Swagger：<http://localhost:3000/api/v1/docs>
 2. 管理端配置品牌 / 上传 LOGO（`POST /admin/brand/logo`，字段 `file`）。未配置 LOGO 时海报会 400。
 3. 教师登录 → `GET /teacher/students`（按班级匹配）→ 上传小明作品（multipart：`image`，可选 `title`/`createdAt`/`courseTheme`）。
 4. 家长 A `GET /parent/children` 得到数组；打开小明作品时间线。家长 B 访问小明接口返回 **404「无法查看」**。
-5. 家长选择 `simple` / `frame` / `magazine` 生成海报；`previewUrl === downloadUrl`，图上含姓名、创作时间、LOGO、水印。
+5. 家长先打 `.../posters/preview` 换模板，再打 `.../posters` 下载成片。版式（模板、姓名、创作时间、LOGO、水印）与预览一致，但 URL 不同。
 
 ## 环境变量
 
@@ -140,7 +140,7 @@ Swagger：<http://localhost:3000/api/v1/docs>
 npm run test:api    # 模板 / 分页 / 错误码 / 班级匹配
 # 默认连 artedu_test，避免清空演示库；请先创建该库或自行设置 DATABASE_URL
 createdb -U artedu artedu_test 2>/dev/null || true
-npm run test:e2e    # 登录、越权 404、绑定/删除 409、无 LOGO 海报 400、URL 一致、儿童数组
+npm run test:e2e    # 登录、越权 404、绑定/删除 409、无 LOGO 400、预览/下载分端点、儿童数组
 ```
 
 e2e 会清空所连库的业务表。演示库请用 `.env` 中的 `artedu`，测试请用 `artedu_test`。
@@ -153,7 +153,7 @@ e2e 会清空所连库的业务表。演示库请用 `.env` 中的 `artedu`，�
          → 未绑定返回 404「无法查看」
 教师     → classNames[] 匹配 Student.className，否则 404「无法查看」
 教师上传 → Storage.putObject + thumb → Artwork
-海报     → 无 LOGO 则 400；sharp(SVG) 叠姓名/创作时间/LOGO/水印 → previewUrl=downloadUrl
+海报     → 无 LOGO 则 400；preview 不落盘成片；download 才成片；两 URL 不同
 公开首页 → /api/v1/public/home（无鉴权，非本期验收）
 ```
 

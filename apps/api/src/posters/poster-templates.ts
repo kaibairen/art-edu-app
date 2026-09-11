@@ -91,8 +91,9 @@ export function buildPosterSvg(params: {
   artworkDataUri: string;
   logoDataUri: string;
   recipe: PosterRecipe;
+  previewBadge?: boolean;
 }): string {
-  const { artworkDataUri, logoDataUri, recipe } = params;
+  const { artworkDataUri, logoDataUri, recipe, previewBadge } = params;
   const style = TEMPLATE_STYLES[recipe.templateKey];
   const name = escapeXml(recipe.studentName);
   const date = escapeXml(recipe.createdAt);
@@ -119,5 +120,6 @@ export function buildPosterSvg(params: {
   <text x="96" y="1380" fill="${style.accent}" font-size="48" font-weight="700" font-family="Noto Sans CJK SC, WenQuanYi Micro Hei, sans-serif">${name}</text>
   <text x="96" y="1440" fill="${style.accent}" font-size="28" font-family="Noto Sans CJK SC, WenQuanYi Micro Hei, sans-serif">${date}</text>
   <text x="96" y="1520" fill="${style.accent}" font-size="22" font-family="Noto Sans CJK SC, WenQuanYi Micro Hei, sans-serif">${escapeXml(recipe.watermarkText)}</text>
+  ${previewBadge ? '<rect x="860" y="36" width="168" height="48" rx="8" fill="#C2410C"/><text x="944" y="68" text-anchor="middle" fill="#ffffff" font-size="28" font-family="sans-serif">预览</text>' : ''}
 </svg>`;
 }

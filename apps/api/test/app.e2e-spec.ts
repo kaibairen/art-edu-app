@@ -14,7 +14,7 @@ import { applyAppDefaults } from '../src/setup-app';
  * 登录成功 / 错密码 / 禁用
  * 越权读 404「无法查看」
  * 绑定 409、有作品删除 409
- * 无 LOGO 海报 400、海报 URL 一致
+ * 无 LOGO 预览/下载均 400、预览与下载 URL 不同
  * 家长儿童直接返回数组
  */
 describe('Art edu API-MVP-P0-0.1 e2e', () => {
@@ -335,7 +335,7 @@ describe('Art edu API-MVP-P0-0.1 e2e', () => {
     });
   });
 
-  it('blocks poster generation without logo and returns equal URLs after logo upload', async () => {
+  it('blocks preview and download without logo, then returns distinct URLs', async () => {
     const teacherToken = await token(phones.teacher);
     const parentA = await token(phones.parentA);
     const parentB = await token(phones.parentB);
@@ -365,6 +365,16 @@ describe('Art edu API-MVP-P0-0.1 e2e', () => {
       expect(upload.body.commentText).toBeNull();
     }
 
+    const noLogoPreview = await request(app.getHttpServer())
+      .post(`${prefix}/parent/artworks/${artworkId}/posters/preview`)
+      .set('Authorization', `Bearer ${parentA}`)
+      .send({ templateKey: 'simple' });
+    expect(noLogoPreview.status).toBe(400);
+    expect(noLogoPreview.body).toEqual({
+      code: 'LOGO_NOT_CONFIGURED',
+      message: '请联系机构配置 LOGO',
+    });
+
     const noLogo = await request(app.getHttpServer())
       .post(`${prefix}/parent/artworks/${artworkId}/posters`)
       .set('Authorization', `Bearer ${parentA}`)
@@ -387,14 +397,24 @@ describe('Art edu API-MVP-P0-0.1 e2e', () => {
     expect(hidden.status).toBe(404);
     expect(hidden.body).toEqual({ code: 'NOT_FOUND', message: '无法查看' });
 
-    const poster = await request(app.getHttpServer())
+    const preview = await request(app.getHttpServer())
+      .post(`${prefix}/parent/artworks/${artworkId}/posters/preview`)
+      .set('Authorization', `Bearer ${parentA}`)
+      .send({ templateKey: 'frame' })
+      .expect(201);
+    const download = await request(app.getHttpServer())
       .post(`${prefix}/parent/artworks/${artworkId}/posters`)
       .set('Authorization', `Bearer ${parentA}`)
       .send({ templateKey: 'frame' })
       .expect(201);
-    expect(poster.body.templateKey).toBe('frame');
-    expect(poster.body.previewUrl).toBe(poster.body.downloadUrl);
-    expect(poster.body.previewUrl).toContain('/files/');
+    expect(preview.body.templateKey).toBe('frame');
+    expect(download.body.templateKey).toBe('frame');
+    expect(preview.body.previewUrl).toContain('/files/posters/previews/');
+    expect(download.body.downloadUrl).toContain('/files/posters/downloads/');
+    expect(preview.body.previewUrl).not.toBe(download.body.downloadUrl);
+    expect(preview.body.downloadUrl).toBeUndefined();
+    expect(download.body.previewUrl).toBeUndefined();
+    expect(await prisma.poster.count()).toBe(1);
   });
 
   it('archives students and refreshes tokens', async () => {

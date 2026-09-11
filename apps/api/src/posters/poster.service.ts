@@ -24,7 +24,11 @@ export class PosterService {
     private readonly brand: BrandService,
   ) {}
 
-  async generate(artwork: Artwork, templateKey: string) {
+  async generate(
+    artwork: Artwork,
+    templateKey: string,
+    mode: 'preview' | 'download',
+  ) {
     if (!isPosterTemplateKey(templateKey)) {
       throw Errors.validation('未知海报模板');
     }
@@ -66,7 +70,7 @@ export class PosterService {
     const artworkPng = await sharp(artworkBuf).png().toBuffer();
     const artworkDataUri = `data:image/png;base64,${artworkPng.toString('base64')}`;
 
-    let logoDataUri: string | null = null;
+    let logoDataUri: string;
     try {
       const logoBuf = await this.loadImageBuffer(brand.logoUrl as string);
       const logoPng = await sharp(logoBuf).resize(192, 192).png().toBuffer();
@@ -75,28 +79,38 @@ export class PosterService {
       throw Errors.logoNotConfigured();
     }
 
-    const svg = buildPosterSvg({ artworkDataUri, logoDataUri, recipe });
-    const posterPng = await sharp(Buffer.from(svg)).png().toBuffer();
+    const svg = buildPosterSvg({
+      artworkDataUri,
+      logoDataUri,
+      recipe,
+      previewBadge: mode === 'preview',
+    });
+    const width = mode === 'preview' ? 540 : 1080;
+    const height = mode === 'preview' ? 810 : 1620;
+    const posterPng = await sharp(Buffer.from(svg))
+      .resize(width, height)
+      .png()
+      .toBuffer();
+    const folder = mode === 'preview' ? 'previews' : 'downloads';
     const stored = await this.storage.putObject(
-      `posters/${artwork.id}/${templateKey}-${Date.now()}.png`,
+      `posters/${folder}/${artwork.id}/${templateKey}-${Date.now()}.png`,
       posterPng,
       'image/png',
     );
 
-    await this.prisma.poster.create({
-      data: {
-        artworkId: artwork.id,
-        templateKey,
-        imageUrl: stored.url,
-        recipe: recipe as object,
-      },
-    });
+    if (mode === 'download') {
+      await this.prisma.poster.create({
+        data: {
+          artworkId: artwork.id,
+          templateKey,
+          imageUrl: stored.url,
+          recipe: recipe as object,
+        },
+      });
+      return { downloadUrl: stored.url, templateKey };
+    }
 
-    return {
-      previewUrl: stored.url,
-      downloadUrl: stored.url,
-      templateKey,
-    };
+    return { previewUrl: stored.url, templateKey };
   }
 
   private async loadImageBuffer(url: string): Promise<Buffer> {

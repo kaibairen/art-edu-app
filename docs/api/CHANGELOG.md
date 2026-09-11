@@ -30,7 +30,7 @@
 | Artwork `theme` / `createdOn` / `textComment` | `title?` / `createdAt`（创作时间倒序键） / `commentText?`，并补 `thumbUrl`、`courseTheme?`、`studentName` |
 | 模板 `classic` / `gallery` / `festival` | `simple` / `frame` / `magazine`（简约 / 画框 / 杂志） |
 | 品牌仅 orgName/logo/watermarkText | 补 `watermarkOpacity`、`watermarkPosition`、`templates[]` |
-| 海报返回 `imageUrl` + `recipe` | `{ previewUrl, downloadUrl, templateKey }` 且两 URL 必须相等 |
+| 海报返回 `imageUrl` + `recipe` | 预览与下载拆端点：`POST .../posters/preview` → `{ previewUrl, templateKey }`；`POST .../posters` → `{ downloadUrl, templateKey }`。两 URL **必须不同** |
 
 ## 错误码与语义
 
@@ -43,7 +43,8 @@
 - 家长未绑定 / 教师非负责：**HTTP 404**，`NOT_FOUND`，文案固定「无法查看」。预研是 403「无权访问」。
 - 禁用账号登录：403 `ACCOUNT_DISABLED`「账号已停用，请联系机构管理员」。已发 Token 再校验到禁用：**401 `UNAUTHORIZED`**，不要 403。
 - 密码错：401「手机号或密码不正确」。
-- 无 LOGO 仍出海报（预研会造默认 LOGO）改为 400 `LOGO_NOT_CONFIGURED`「请联系机构配置 LOGO」。
+- 无 LOGO 仍出海报（预研会造默认 LOGO）改为 400 `LOGO_NOT_CONFIGURED`「请联系机构配置 LOGO」（预览与下载两端点均如此）。
+- 海报预览不落盘成片；下载才写正式 Poster。`previewUrl` 不得默认等于 `downloadUrl`。
 - 有作品的学员禁止硬删：409「该学员已有作品，仅支持归档」。
 - 重复绑定：409「已绑定」。
 - 列表默认 `cursor` + `limit`（默认 20，最大 50）→ `{ items, nextCursor }`。**唯一例外**：`GET /parent/children` 直接返回 `Student[]`。

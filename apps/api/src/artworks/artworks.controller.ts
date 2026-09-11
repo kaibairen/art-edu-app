@@ -104,6 +104,16 @@ export class ArtworksController {
     return this.artworks.getArtwork(user, artworkId);
   }
 
+  @Post('parent/artworks/:artworkId/posters/preview')
+  @Roles(Role.parent)
+  parentPosterPreview(
+    @CurrentUser() user: AuthUser,
+    @Param('artworkId') artworkId: string,
+    @Body() dto: GeneratePosterDto,
+  ) {
+    return this.artworks.generatePoster(user, artworkId, dto.templateKey, 'preview');
+  }
+
   @Post('parent/artworks/:artworkId/posters')
   @Roles(Role.parent)
   parentPoster(
@@ -111,6 +121,6 @@ export class ArtworksController {
     @Param('artworkId') artworkId: string,
     @Body() dto: GeneratePosterDto,
   ) {
-    return this.artworks.generatePoster(user, artworkId, dto.templateKey);
+    return this.artworks.generatePoster(user, artworkId, dto.templateKey, 'download');
   }
 }

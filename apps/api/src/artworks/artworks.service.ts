@@ -137,9 +137,14 @@ export class ArtworksService {
     return toArtworkDto(artwork);
   }
 
-  async generatePoster(user: AuthUser, artworkId: string, templateKey: string) {
+  async generatePoster(
+    user: AuthUser,
+    artworkId: string,
+    templateKey: string,
+    mode: 'preview' | 'download',
+  ) {
     const artwork = await this.access.loadArtworkFor(user, artworkId);
-    return this.posters.generate(artwork, templateKey);
+    return this.posters.generate(artwork, templateKey, mode);
   }
 
   private async teacherClassNames(teacherId: string): Promise<string[]> {
