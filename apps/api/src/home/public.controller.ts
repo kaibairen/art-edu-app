@@ -20,7 +20,7 @@ export class PublicController {
     return {
       settings: settings ?? {
         orgName: '美术教培机构',
-        logoUrl: null,
+        logoUrl: null as string | null,
         watermarkText: '',
       },
       contents,

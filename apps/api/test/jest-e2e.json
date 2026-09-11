@@ -3,10 +3,21 @@
   "rootDir": ".",
   "testRegex": ".*\\.e2e-spec\\.ts$",
   "transform": {
-    "^.+\\.ts$": "ts-jest"
+    "^.+\\.ts$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "esModuleInterop": true,
+          "strict": false,
+          "noImplicitAny": false,
+          "emitDecoratorMetadata": true,
+          "experimentalDecorators": true
+        }
+      }
+    ]
   },
   "testEnvironment": "node",
   "moduleNameMapper": {
-    "^@art-edu/shared$": "<rootDir>/../../packages/shared/src/index.ts"
+    "^@art-edu/shared$": "<rootDir>/../../../packages/shared/src/index.ts"
   }
 }

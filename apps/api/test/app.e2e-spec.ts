@@ -4,7 +4,7 @@ import { Role } from '@prisma/client';
 import { execSync } from 'child_process';
 import { mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 

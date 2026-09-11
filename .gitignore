@@ -3,8 +3,11 @@ dist
 build
 .env
 .env.local
-storage
-uploads
+/storage
+/uploads
+apps/api/storage
+apps/api/storage-e2e
+apps/api/dist
 *.log
 .DS_Store
 coverage
@@ -23,6 +26,11 @@ apps/mobile/.flutter-plugins-dependencies
 # Prisma
 apps/api/prisma/*.db
 apps/api/generated
+
+# TypeScript emit accidentally dropped next to sources
+packages/shared/src/*.js
+packages/shared/src/*.d.ts
+packages/shared/src/*.map
 
 # OS / tooling
 .turbo

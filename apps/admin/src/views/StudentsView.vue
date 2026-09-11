@@ -8,12 +8,12 @@
       <el-table-column prop="name" label="姓名" />
       <el-table-column label="家长">
         <template #default="{ row }">
-          {{ row.parentBindings.map((b: Binding) => b.parent.name).join('、') || '未绑定' }}
+          {{ row.parentBindings.map((b: Binding) => b.parent?.name).filter(Boolean).join('、') || '未绑定' }}
         </template>
       </el-table-column>
       <el-table-column label="教师">
         <template #default="{ row }">
-          {{ row.teacherBindings.map((b: Binding) => b.teacher.name).join('、') || '未分配' }}
+          {{ row.teacherBindings.map((b: Binding) => b.teacher?.name).filter(Boolean).join('、') || '未分配' }}
         </template>
       </el-table-column>
       <el-table-column label="操作" width="220">
