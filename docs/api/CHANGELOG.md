@@ -10,7 +10,7 @@
 | 优秀作品 | 仅 `published=true`：`imageUrl` `title` `studentDisplayName` | `/admin/home/featured-artworks` CRUD + `/status` + `/reorder` + `/from-artworks` |
 | 课程 | 仅 `published=true`：`title` `summary` `coverUrl?` | `/admin/home/courses` CRUD + `/status` + `/reorder` |
 
-公开聚合：`GET /api/v1/public/home`（无鉴权）。发布过滤在接口层。
+公开聚合：`GET /api/v1/public/home`（无鉴权）。字段序：`brand` → `banners` → `courses` → `featuredArtworks`。发布过滤在接口层。
 
 **公开优秀作品卡禁止字段**：`commentText`、`teacherComment`、点评、`studentId`、`note` 等私人档案。`from-artworks` 只快照公开三字段，不复制点评。课程**无长文 `body`**（`summary` ≤ 200）。无 LOGO 不阻断（`brand.logoUrl` 可为 null）。不做课表 / 考勤 / 活动报名。
 

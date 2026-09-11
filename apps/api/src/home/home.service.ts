@@ -44,8 +44,8 @@ export class HomeService {
       orgName: settings?.orgName ?? null,
       logoUrl: settings?.logoUrl ?? null,
       banners,
-      featuredArtworks,
       courses,
+      featuredArtworks,
     });
   }
 

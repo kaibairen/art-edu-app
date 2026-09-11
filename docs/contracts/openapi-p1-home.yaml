@@ -11,6 +11,7 @@ info:
       **禁止** `commentText`、点评、`studentId`、note 等私人档案字段。
     - 公开课程仅 `title` + `summary`（+ 可选 `coverUrl`），**无长文 body**。
     - 无 LOGO 不阻断公开首页（`brand.logoUrl` 可为 null）。
+    - 公开首页字段序：`brand` → `banners` → `courses` → `featuredArtworks`。
     - 管理写仅 admin；教师 / 家长 403 `FORBIDDEN`。
     - 不做课表、考勤、活动报名。
 servers:
@@ -96,19 +97,19 @@ components:
 
     PublicHome:
       type: object
-      required: [brand, banners, featuredArtworks, courses]
+      required: [brand, banners, courses, featuredArtworks]
       additionalProperties: false
       properties:
         brand: { $ref: '#/components/schemas/PublicHomeBrand' }
         banners:
           type: array
           items: { $ref: '#/components/schemas/PublicBanner' }
-        featuredArtworks:
-          type: array
-          items: { $ref: '#/components/schemas/PublicFeaturedArtwork' }
         courses:
           type: array
           items: { $ref: '#/components/schemas/PublicCourse' }
+        featuredArtworks:
+          type: array
+          items: { $ref: '#/components/schemas/PublicFeaturedArtwork' }
       example:
         brand:
           orgName: 星光美术教室
@@ -120,16 +121,16 @@ components:
             subtitle: 作品存档 · 家校点评 · 海报分享
             linkUrl: null
             sortOrder: 0
-        featuredArtworks:
-          - id: feat-1
-            imageUrl: http://localhost:3000/files/home/feat-spring-tree.jpg
-            title: 春天的树
-            studentDisplayName: 小明
         courses:
           - id: course-1
             title: 少儿创意水彩
             summary: 周六上午小班制，观察力、构图与色彩表达。
             coverUrl: null
+        featuredArtworks:
+          - id: feat-1
+            imageUrl: http://localhost:3000/files/home/feat-spring-tree.jpg
+            title: 春天的树
+            studentDisplayName: 小明
 
     AdminBanner:
       allOf:
@@ -267,7 +268,8 @@ paths:
       tags: [PublicHome]
       summary: 公开首页聚合（未登录）
       description: |
-        仅已启用轮播、已发布优秀作品与已发布课程。
+        仅已启用轮播、已发布课程与已发布优秀作品。
+        字段序：`brand` → `banners` → `courses` → `featuredArtworks`。
         发布过滤在接口层。无 LOGO 仍 200。
       security: []
       responses:

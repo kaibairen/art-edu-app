@@ -278,6 +278,14 @@ export const PUBLIC_FEATURED_ARTWORK_FIELDS = [
   'studentDisplayName',
 ] as const;
 
+/** 公开首页 JSON 字段序：brand → banners → courses → featuredArtworks。 */
+export const PUBLIC_HOME_FIELDS = [
+  'brand',
+  'banners',
+  'courses',
+  'featuredArtworks',
+] as const;
+
 export const COURSE_SUMMARY_MAX_LENGTH = 200;
 
 export interface PublicHomeBrand {
@@ -313,8 +321,8 @@ export interface PublicCourse {
 export interface PublicHome {
   brand: PublicHomeBrand;
   banners: PublicBanner[];
-  featuredArtworks: PublicFeaturedArtwork[];
   courses: PublicCourse[];
+  featuredArtworks: PublicFeaturedArtwork[];
 }
 
 export interface AdminBanner extends PublicBanner {

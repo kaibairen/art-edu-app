@@ -458,8 +458,14 @@ describe('Art edu API-MVP-P0-0.1 e2e', () => {
       .expect(200);
     expect(res.body.brand.orgName).toBe('测试画室');
     expect(res.body.brand.logoUrl).toBeNull();
+    expect(Object.keys(res.body)).toEqual([
+      'brand',
+      'banners',
+      'courses',
+      'featuredArtworks',
+    ]);
     expect(res.body.banners).toEqual([]);
-    expect(res.body.featuredArtworks).toEqual([]);
     expect(res.body.courses).toEqual([]);
+    expect(res.body.featuredArtworks).toEqual([]);
   });
 });

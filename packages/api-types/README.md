@@ -5,7 +5,7 @@
 契约：
 
 - P0 [`docs/contracts/openapi-p0.yaml`](../../docs/contracts/openapi-p0.yaml)
-- P1 [`docs/contracts/openapi-p1-home.yaml`](../../docs/contracts/openapi-p1-home.yaml)（`PublicHome` / `P1_HOME_PATHS`）
+- P1 [`docs/contracts/openapi-p1-home.yaml`](../../docs/contracts/openapi-p1-home.yaml)（`PublicHome` / `P1_HOME_PATHS`；字段序 `brand` → `banners` → `courses` → `featuredArtworks`）
 
 公开优秀作品卡字段仅 `id` / `imageUrl` / `title` / `studentDisplayName`，禁止 `commentText` / `teacherComment`。
 
