@@ -1,5 +1,9 @@
 export {
+  ACCOUNT_DISABLED_ISSUED_TOKEN,
+  ACCOUNT_DISABLED_ON_LOGIN,
   API_ERROR_CODES,
+  API_ERROR_DEFS,
+  CONFLICT_BINDING_MESSAGE,
   FORBIDDEN_READ_MESSAGE,
   type ApiErrorCode,
 } from './error-codes';
@@ -10,6 +14,7 @@ export {
   P0_PATHS,
   POSTER_TEMPLATE_KEYS,
   ROLES,
+  STUDENT_STATUSES,
   WATERMARK_POSITIONS,
   type Account,
   type Artwork,
@@ -39,13 +44,16 @@ export {
   type RefreshResponse,
   type Role,
   type Student,
+  type StudentStatus,
   type TokenPair,
   type UpdateAccountRequest,
   type UpdateBrandRequest,
+  type UpdateStudentRequest,
   type WatermarkPosition,
 } from './dto';
 export {
   EXAMPLE_ACCOUNT_DISABLED,
+  EXAMPLE_ACCOUNT_DISABLED_ISSUED_TOKEN,
   EXAMPLE_ARTWORK,
   EXAMPLE_ARTWORK_PAGE,
   EXAMPLE_AUTH_USER,

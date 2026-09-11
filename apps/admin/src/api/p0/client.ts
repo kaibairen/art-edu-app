@@ -28,6 +28,7 @@ import {
   type Student,
   type UpdateAccountRequest,
   type UpdateBrandRequest,
+  type UpdateStudentRequest,
 } from '@art-edu/api-types';
 import { P0_TOKEN_STORAGE_KEY, resolveP0BaseURL } from './config';
 
@@ -256,6 +257,17 @@ export class P0ApiClient {
   async getAdminStudent(studentId: string): Promise<Student> {
     const { data } = await this.http.get<Student>(
       P0_PATHS.adminStudent(studentId),
+    );
+    return data;
+  }
+
+  async updateStudent(
+    studentId: string,
+    body: UpdateStudentRequest,
+  ): Promise<Student> {
+    const { data } = await this.http.patch<Student>(
+      P0_PATHS.adminStudent(studentId),
+      body,
     );
     return data;
   }

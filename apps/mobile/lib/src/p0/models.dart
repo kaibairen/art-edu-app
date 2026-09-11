@@ -83,6 +83,7 @@ class Student {
     this.gender,
     this.note,
     this.avatarUrl,
+    this.status = 'active',
     this.createdAt,
   });
 
@@ -92,6 +93,9 @@ class Student {
   final String? gender;
   final String? note;
   final String? avatarUrl;
+
+  /// `active` | `archived`
+  final String status;
   final String? createdAt;
 
   factory Student.fromJson(Map<String, dynamic> json) {
@@ -102,6 +106,7 @@ class Student {
       gender: json['gender'] as String?,
       note: json['note'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
+      status: json['status'] as String? ?? 'active',
       createdAt: json['createdAt'] as String?,
     );
   }

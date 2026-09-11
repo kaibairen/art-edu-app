@@ -53,6 +53,7 @@ docker-compose.yml
 
 - Base `http://localhost:4010/api/v1`；`Authorization: Bearer {accessToken}`
 - 成功直接返回资源；错误 `{ code, message, details? }`
+- 定稿错误码见 `API_ERROR_DEFS`：`CONFLICT_BINDING` 409「已绑定」；`CONFLICT_STUDENT_HAS_ARTWORK` 409（`Student.status` = `active` | `archived`）；登录 `ACCOUNT_DISABLED` 403，已发 Token → 401 `UNAUTHORIZED`
 - 海报拆成两个接口，URL 禁止相同：
   - `POST /parent/artworks/{id}/posters/preview` → `{ previewUrl, templateKey }`（`previewPoster`）
   - `POST /parent/artworks/{id}/posters` → `{ downloadUrl, templateKey }`（`downloadPoster`）

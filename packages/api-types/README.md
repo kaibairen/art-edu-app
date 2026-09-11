@@ -10,3 +10,9 @@ P0 `/api/v1` TypeScript DTO 与错误码。**Mock 骨架 only，业务页冻结�
 - `downloadPoster` → `POST /parent/artworks/{id}/posters` → `{ downloadUrl, templateKey }`
 
 示例见 `EXAMPLE_POSTER_PREVIEW` / `EXAMPLE_POSTER_DOWNLOAD`（`…-preview.png` vs `….png`）。
+
+定稿错误码常量：`API_ERROR_DEFS`
+
+- `CONFLICT_BINDING` 409「已绑定」
+- `CONFLICT_STUDENT_HAS_ARTWORK` 409；`Student.status` = `active` | `archived`
+- `ACCOUNT_DISABLED` 登录 403；已发 Token → `UNAUTHORIZED` 401

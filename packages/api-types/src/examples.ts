@@ -1,4 +1,10 @@
-import { FORBIDDEN_READ_MESSAGE } from './error-codes';
+import {
+  ACCOUNT_DISABLED_ISSUED_TOKEN,
+  ACCOUNT_DISABLED_ON_LOGIN,
+  API_ERROR_DEFS,
+  CONFLICT_BINDING_MESSAGE,
+  FORBIDDEN_READ_MESSAGE,
+} from './error-codes';
 import type { ApiErrorBody } from './errors';
 import type {
   Artwork,
@@ -40,6 +46,7 @@ export const EXAMPLE_STUDENT: Student = {
   gender: 'male',
   note: null,
   avatarUrl: null,
+  status: 'active',
   createdAt: '2026-09-01T00:00:00.000Z',
 };
 
@@ -90,18 +97,24 @@ export const EXAMPLE_FORBIDDEN_READ: ApiErrorBody = {
 };
 
 export const EXAMPLE_ACCOUNT_DISABLED: ApiErrorBody = {
-  code: 'ACCOUNT_DISABLED',
+  code: ACCOUNT_DISABLED_ON_LOGIN.code,
   message: '账号已停用',
 };
 
+/** 停用前已签发 Token：401 UNAUTHORIZED，不是 ACCOUNT_DISABLED。 */
+export const EXAMPLE_ACCOUNT_DISABLED_ISSUED_TOKEN: ApiErrorBody = {
+  code: ACCOUNT_DISABLED_ISSUED_TOKEN.code,
+  message: '未授权',
+};
+
 export const EXAMPLE_CONFLICT_BINDING: ApiErrorBody = {
-  code: 'CONFLICT_BINDING',
-  message: '绑定关系已存在',
+  code: API_ERROR_DEFS.CONFLICT_BINDING.code,
+  message: CONFLICT_BINDING_MESSAGE,
 };
 
 export const EXAMPLE_CONFLICT_STUDENT_HAS_ARTWORK: ApiErrorBody = {
-  code: 'CONFLICT_STUDENT_HAS_ARTWORK',
-  message: '学员仍有作品，无法删除',
+  code: API_ERROR_DEFS.CONFLICT_STUDENT_HAS_ARTWORK.code,
+  message: '学员仍有作品',
 };
 
 export const EXAMPLE_LOGO_NOT_CONFIGURED: ApiErrorBody = {

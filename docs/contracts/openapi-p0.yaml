@@ -9,6 +9,9 @@ info:
     海报已拆成两个接口，禁止返回同一 URL：
     - POST /parent/artworks/{id}/posters/preview → { previewUrl, templateKey }
     - POST /parent/artworks/{id}/posters → { downloadUrl, templateKey }
+    定稿错误码：CONFLICT_BINDING 409「已绑定」；
+    CONFLICT_STUDENT_HAS_ARTWORK 409（Student.status=active|archived）；
+    ACCOUNT_DISABLED 登录 403，已发 Token → 401 UNAUTHORIZED。
 servers:
   - url: http://localhost:4010
     description: Prism Mock
@@ -71,6 +74,11 @@ components:
     BindingKind:
       type: string
       enum: [parent, teacher]
+
+    StudentStatus:
+      type: string
+      enum: [active, archived]
+      description: 有作品的学员不可删（409 CONFLICT_STUDENT_HAS_ARTWORK），改为 archived
 
     AuthUser:
       type: object
@@ -136,7 +144,7 @@ components:
 
     Student:
       type: object
-      required: [id, name, birthday, gender, note, avatarUrl, createdAt]
+      required: [id, name, birthday, gender, note, avatarUrl, status, createdAt]
       properties:
         id: { type: string }
         name: { type: string }
@@ -144,6 +152,7 @@ components:
         gender: { type: string, nullable: true }
         note: { type: string, nullable: true }
         avatarUrl: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/StudentStatus' }
         createdAt: { type: string, format: date-time }
       example:
         id: stu-xiaoming
@@ -152,6 +161,7 @@ components:
         gender: male
         note: null
         avatarUrl: null
+        status: active
         createdAt: '2026-09-01T00:00:00.000Z'
 
     ArtworkComment:
@@ -301,6 +311,17 @@ components:
         gender: { type: string }
         note: { type: string }
         avatarUrl: { type: string }
+        status: { $ref: '#/components/schemas/StudentStatus' }
+
+    UpdateStudentRequest:
+      type: object
+      properties:
+        name: { type: string }
+        birthday: { type: string, nullable: true }
+        gender: { type: string, nullable: true }
+        note: { type: string, nullable: true }
+        avatarUrl: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/StudentStatus' }
 
     Binding:
       type: object
@@ -364,7 +385,7 @@ paths:
         '401':
           $ref: '#/components/responses/ApiError'
         '403':
-          description: 账号停用
+          description: 登录时账号停用，固定 403 ACCOUNT_DISABLED
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiError' }
@@ -403,7 +424,13 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/AuthUser' }
         '401':
-          $ref: '#/components/responses/ApiError'
+          description: 已签发 Token 后账号停用，返回 401 UNAUTHORIZED（不是 ACCOUNT_DISABLED）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+              example:
+                code: UNAUTHORIZED
+                message: 未授权
 
   /api/v1/auth/refresh:
     post:
@@ -460,6 +487,7 @@ paths:
                   gender: male
                   note: null
                   avatarUrl: null
+                  status: active
                   createdAt: '2026-09-01T00:00:00.000Z'
 
   /api/v1/parent/children/{studentId}/artworks:
@@ -825,6 +853,24 @@ paths:
               schema: { $ref: '#/components/schemas/Student' }
         '404':
           $ref: '#/components/responses/ApiError'
+    patch:
+      tags: [Admin]
+      summary: 更新学员（含 status=archived，有作品时请归档勿删）
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateStudentRequest' }
+      responses:
+        '200':
+          description: Student
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Student' }
     delete:
       tags: [Admin]
       parameters:
@@ -843,13 +889,13 @@ paths:
                 properties:
                   ok: { type: boolean, enum: [true] }
         '409':
-          description: 学员仍有作品
+          description: 409 CONFLICT_STUDENT_HAS_ARTWORK；请改 Student.status=archived
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiError' }
               example:
                 code: CONFLICT_STUDENT_HAS_ARTWORK
-                message: 学员仍有作品，无法删除
+                message: 学员仍有作品
 
   /api/v1/admin/bindings:
     get:
@@ -892,7 +938,7 @@ paths:
               schema: { $ref: '#/components/schemas/ApiError' }
               example:
                 code: CONFLICT_BINDING
-                message: 绑定关系已存在
+                message: 已绑定
 
   /api/v1/admin/bindings/{bindingId}:
     delete:

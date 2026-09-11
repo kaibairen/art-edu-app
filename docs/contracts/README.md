@@ -9,6 +9,10 @@
 - 成功：直接返回资源
 - 失败：`{ code, message, details? }`
 - 越权读：`404 NOT_FOUND`「无法查看」
+- 定稿错误码（与 `@art-edu/api-types` 的 `API_ERROR_DEFS` 一致）：
+  - `CONFLICT_BINDING` **409**「已绑定」
+  - `CONFLICT_STUDENT_HAS_ARTWORK` **409**；`Student.status` = `active` | `archived`（有作品请归档，勿删）
+  - `ACCOUNT_DISABLED` **403** 仅登录；已签发 Token → **401** `UNAUTHORIZED`
 
 海报是**两个接口**，禁止两 URL 相同：
 

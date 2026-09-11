@@ -20,6 +20,10 @@ export type WatermarkPosition = (typeof WATERMARK_POSITIONS)[number];
 export const BINDING_KINDS = ['parent', 'teacher'] as const;
 export type BindingKind = (typeof BINDING_KINDS)[number];
 
+/** 有作品的学员不可删（409 CONFLICT_STUDENT_HAS_ARTWORK），改为 archived。 */
+export const STUDENT_STATUSES = ['active', 'archived'] as const;
+export type StudentStatus = (typeof STUDENT_STATUSES)[number];
+
 export interface AuthUser {
   id: string;
   phone: string;
@@ -89,6 +93,7 @@ export interface Student {
   gender: string | null;
   note: string | null;
   avatarUrl: string | null;
+  status: StudentStatus;
   createdAt: string;
 }
 
@@ -98,6 +103,16 @@ export interface CreateStudentRequest {
   gender?: string;
   note?: string;
   avatarUrl?: string;
+  status?: StudentStatus;
+}
+
+export interface UpdateStudentRequest {
+  name?: string;
+  birthday?: string | null;
+  gender?: string | null;
+  note?: string | null;
+  avatarUrl?: string | null;
+  status?: StudentStatus;
 }
 
 export interface ArtworkComment {
