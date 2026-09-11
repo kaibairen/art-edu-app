@@ -5,18 +5,15 @@
         <div class="brand-name">星光美术</div>
         <div class="role-chip">管理端</div>
       </div>
-      <el-menu :default-active="route.path" router>
+      <el-menu :default-active="route.path" :key="route.path" router>
         <el-menu-item-group title="常用">
           <el-menu-item index="/users">账号管理</el-menu-item>
           <el-menu-item index="/students">学员与绑定</el-menu-item>
           <el-menu-item index="/settings">品牌 / LOGO / 水印</el-menu-item>
           <el-menu-item index="/templates">海报模板</el-menu-item>
+          <el-menu-item index="/home">首页内容</el-menu-item>
         </el-menu-item-group>
         <el-menu-item-group title="更多">
-          <el-menu-item index="/home" class="soon-item">
-            <span>首页内容</span>
-            <span class="soon-badge">即将开放</span>
-          </el-menu-item>
           <el-menu-item index="/preview" class="soon-item">
             <span>公开首页预览</span>
             <span class="soon-badge">即将开放</span>

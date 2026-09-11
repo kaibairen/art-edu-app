@@ -1,40 +1,85 @@
 <template>
   <div>
-    <h2 class="page-title">公开首页预览</h2>
-    <p class="page-hint">GET /api/v1/public/home。未配置 LOGO 也可打开。优秀作品卡不含点评。</p>
-    <el-card>
-      <div class="hero">
-        <el-image v-if="data.brand?.logoUrl" :src="data.brand.logoUrl" class="logo" />
-        <div>
-          <h1>{{ data.brand?.orgName || '机构公开首页' }}</h1>
-          <p v-if="!data.brand?.logoUrl">尚未配置 LOGO（不阻断公开首页）</p>
-        </div>
+    <div class="page-bar">
+      <div>
+        <h2 class="page-title">公开首页预览</h2>
+        <p class="page-hint">
+          按访客看到的样子预览公开首页。未配置 LOGO 也能打开。公开卡无点评；课程无长文。
+        </p>
       </div>
-      <el-divider />
-      <h3>轮播</h3>
-      <el-card v-for="item in data.banners" :key="item.id" class="block" shadow="never">
-        <h4>{{ item.title }}</h4>
-        <p>{{ item.subtitle }}</p>
+      <el-button @click="backHome">返回首页内容</el-button>
+    </div>
+
+    <el-alert
+      v-if="loadError"
+      :title="loadError"
+      type="error"
+      :closable="false"
+      class="block"
+    />
+
+    <el-empty v-else-if="loading" description="正在加载访客首页…" />
+
+    <template v-else>
+      <el-card class="hero-card" shadow="never">
+        <div class="hero">
+          <el-image v-if="data.brand.logoUrl" :src="data.brand.logoUrl" class="logo" fit="contain" />
+          <div>
+            <h1>{{ data.brand.orgName || '机构公开首页' }}</h1>
+            <p v-if="!data.brand.logoUrl" class="muted">尚未配置 LOGO，公开首页仍可打开。</p>
+          </div>
+        </div>
       </el-card>
-      <h3>优秀作品</h3>
-      <el-card v-for="item in data.featuredArtworks" :key="item.id" class="block" shadow="never">
-        <h4>{{ item.title }}</h4>
-        <p>{{ item.studentDisplayName }}</p>
-      </el-card>
-      <h3>课程</h3>
-      <el-card v-for="item in data.courses" :key="item.id" class="block" shadow="never">
-        <h4>{{ item.title }}</h4>
-        <p>{{ item.summary }}</p>
-      </el-card>
-    </el-card>
+
+      <section class="section">
+        <h3>轮播</h3>
+        <el-empty v-if="data.banners.length === 0" description="访客现在看不到轮播。" />
+        <div v-else class="cards">
+          <el-card v-for="item in data.banners" :key="item.id" shadow="never">
+            <el-image v-if="item.imageUrl" :src="item.imageUrl" class="cover" fit="cover" />
+            <h4>{{ item.title || '未填写标题' }}</h4>
+            <p v-if="item.subtitle" class="muted">{{ item.subtitle }}</p>
+          </el-card>
+        </div>
+      </section>
+
+      <section class="section">
+        <h3>优秀作品</h3>
+        <el-empty v-if="data.featuredArtworks.length === 0" description="访客现在看不到公开作品。" />
+        <div v-else class="cards">
+          <el-card v-for="item in data.featuredArtworks" :key="item.id" shadow="never">
+            <el-image v-if="item.imageUrl" :src="item.imageUrl" class="cover" fit="cover" />
+            <h4>{{ item.title }}</h4>
+            <p class="muted">{{ item.studentDisplayName }}</p>
+          </el-card>
+        </div>
+      </section>
+
+      <section class="section">
+        <h3>课程介绍</h3>
+        <el-empty v-if="data.courses.length === 0" description="访客现在看不到课程介绍。" />
+        <div v-else class="cards">
+          <el-card v-for="item in data.courses" :key="item.id" shadow="never">
+            <el-image v-if="item.coverUrl" :src="item.coverUrl" class="cover" fit="cover" />
+            <h4>{{ item.title }}</h4>
+            <p>{{ item.summary }}</p>
+          </el-card>
+        </div>
+      </section>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import type { PublicHome } from '@art-edu/api-types';
-import { http } from '../api/http';
+import { errorMessage } from '../api/errors';
+import { getPublicHome } from '../api/home';
 
+const router = useRouter();
+const loading = ref(true);
+const loadError = ref('');
 const data = ref<PublicHome>({
   brand: { orgName: null, logoUrl: null },
   banners: [],
@@ -42,23 +87,70 @@ const data = ref<PublicHome>({
   courses: [],
 });
 
+function backHome() {
+  void router.push('/home');
+}
+
 onMounted(async () => {
-  const res = await http.get('/public/home');
-  data.value = res.data;
+  loading.value = true;
+  loadError.value = '';
+  try {
+    data.value = await getPublicHome();
+  } catch (e) {
+    loadError.value = errorMessage(e, '加载公开首页失败');
+  } finally {
+    loading.value = false;
+  }
 });
 </script>
 
 <style scoped>
+.page-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.page-title {
+  margin-bottom: var(--space-2);
+}
+.page-hint {
+  margin: 0;
+  max-width: 40rem;
+}
+.hero-card,
+.block,
+.section {
+  margin-bottom: var(--space-4);
+}
 .hero {
   display: flex;
-  gap: 16px;
+  gap: var(--space-4);
   align-items: center;
 }
 .logo {
   width: 72px;
   height: 72px;
 }
-.block {
-  margin-bottom: 12px;
+.cover {
+  width: 100%;
+  height: 140px;
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-tag);
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+h1,
+h3,
+h4 {
+  margin: 0 0 var(--space-2);
+}
+.muted {
+  color: var(--color-ink-tertiary);
+  margin: 0;
 }
 </style>

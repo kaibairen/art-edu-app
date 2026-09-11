@@ -204,10 +204,16 @@ if (layout.includes('P0 本期') || layout.includes('非本期（P1）')) {
   fail('侧栏不得出现 P0/P1 工程分组文案');
 }
 if (!layout.includes('即将开放')) {
-  fail('P1 菜单须标注「即将开放」');
+  fail('未放行入口须标注「即将开放」');
 }
 if (!layout.includes('常用') && !layout.includes('更多')) {
   fail('侧栏分组应为「常用 / 更多」或隐藏分组');
+}
+if (!layout.includes('首页内容')) {
+  fail('侧栏须有「首页内容」');
+}
+if (/index="\/home"[^>]*(soon-item|即将开放)|首页内容[\s\S]{0,80}即将开放/.test(layout)) {
+  fail('侧栏「首页内容」已放行骨架，不得再标「即将开放」');
 }
 const usersHint = users.match(/<p class="page-hint">([\s\S]*?)<\/p>/);
 if (usersHint && /classNames|className|F-011/.test(usersHint[1])) {
@@ -226,6 +232,65 @@ if (!settings.includes('尚未配置 LOGO') || !settings.includes('logo-slot')) 
 }
 if (!settings.includes('sr-file')) {
   fail('LOGO 上传须隐藏原生 Choose File 外观');
+}
+
+// 11. US-P1-01 管理端：正式类型 + 三 Tab CRUD + 硬约束
+const homeContent = read('apps/admin/src/views/HomeContentView.vue');
+const publicPreview = read('apps/admin/src/views/PublicPreview.vue');
+const homeApi = read('apps/admin/src/api/home.ts');
+const bannersPanel = read('apps/admin/src/views/home/BannersPanel.vue');
+const coursesPanel = read('apps/admin/src/views/home/CoursesPanel.vue');
+const featuredPanel = read('apps/admin/src/views/home/FeaturedPanel.vue');
+const homeUi = [homeContent, publicPreview, bannersPanel, coursesPanel, featuredPanel].join('\n');
+if (!homeContent.includes('轮播') || !homeContent.includes('课程介绍') || !homeContent.includes('优秀作品公开')) {
+  fail('首页内容须有三 Tab：轮播 / 课程介绍 / 优秀作品公开');
+}
+if (!homeContent.includes('公开首页预览')) {
+  fail('首页内容顶栏须有次操作「公开首页预览」');
+}
+if (!homeContent.includes('公开卡无点评') || !homeContent.includes('课程无长文')) {
+  fail('首页内容页须写明硬约束：公开卡无点评；课程无长文');
+}
+if (
+  !homeApi.includes('P1_HOME_PATHS') ||
+  !homeApi.includes("from '@art-edu/api-types'") ||
+  !homeApi.includes('PublicHome') ||
+  !homeApi.includes('AdminBanner') ||
+  !homeApi.includes('AdminCourse') ||
+  !homeApi.includes('AdminFeaturedArtwork')
+) {
+  fail('home.ts 必须用 @art-edu/api-types 的 PublicHome / P1_HOME_PATHS / 三块 Admin 类型');
+}
+if (
+  !homeApi.includes('adminBannerStatus') ||
+  !homeApi.includes('adminBannersReorder') ||
+  !homeApi.includes('adminCourseStatus') ||
+  !homeApi.includes('adminFeaturedFromArtworks')
+) {
+  fail('home.ts 须接 status / reorder / from-artworks');
+}
+if (homeUi.includes('/admin/home-contents') || homeApi.includes('/admin/home-contents')) {
+  fail('禁止再走旧路径 /admin/home-contents');
+}
+if (
+  /v-model="[^"]*comment|label="点评"|prop="commentText"|teacherComment/.test(homeUi)
+) {
+  fail('优秀作品公开卡禁止点评字段');
+}
+if (/v-model="[^"]*body"|label="正文"|label="长文"/.test(homeUi)) {
+  fail('课程介绍禁止长文 body');
+}
+if (!coursesPanel.includes('COURSE_SUMMARY_MAX_LENGTH')) {
+  fail('课程摘要须使用 COURSE_SUMMARY_MAX_LENGTH');
+}
+if (!publicPreview.includes('PublicHome') || !publicPreview.includes('getPublicHome')) {
+  fail('公开预览须 GET /public/home 并使用 PublicHome');
+}
+if (publicPreview.includes('settings?.') || publicPreview.includes('item.body') || publicPreview.includes('commentText')) {
+  fail('公开预览不得写死旧 contents/body 或点评字段');
+}
+if (!publicPreview.includes('公开卡无点评') || !publicPreview.includes('课程无长文')) {
+  fail('公开预览须写明硬约束：公开卡无点评；课程无长文');
 }
 
 if (failures.length) {
