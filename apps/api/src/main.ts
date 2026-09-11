@@ -1,4 +1,3 @@
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -6,20 +5,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { AppModule } from './app.module';
+import { applyAppDefaults } from './setup-app';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
 
-  const prefix = config.get<string>('API_PREFIX', 'api');
-  app.setGlobalPrefix(prefix);
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: false,
-    }),
-  );
+  const prefix = config.get<string>('API_PREFIX', 'api/v1');
+  applyAppDefaults(app, prefix);
 
   const origins = (config.get<string>('CORS_ORIGINS') ?? '')
     .split(',')
@@ -38,7 +31,7 @@ async function bootstrap() {
 
   const swagger = new DocumentBuilder()
     .setTitle('美术教培 API')
-    .setDescription('一期 MVP：账号、作品档案、海报、公开首页')
+    .setDescription('API-MVP-P0-0.1 契约对齐：账号、作品档案、品牌与海报')
     .setVersion('0.1.0')
     .addBearerAuth()
     .build();

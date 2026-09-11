@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Artwork } from '@prisma/client';
 import { readFile } from 'fs/promises';
@@ -6,6 +6,8 @@ import { join } from 'path';
 import sharp from 'sharp';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
+import { Errors } from '../common/errors';
+import { BrandService } from '../brand/brand.service';
 import {
   PosterRecipe,
   TEMPLATE_STYLES,
@@ -19,35 +21,42 @@ export class PosterService {
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
     private readonly config: ConfigService,
+    private readonly brand: BrandService,
   ) {}
 
   async generate(artwork: Artwork, templateKey: string) {
     if (!isPosterTemplateKey(templateKey)) {
-      throw new BadRequestException('未知海报模板');
+      throw Errors.validation('未知海报模板');
     }
-    const [student, settings, template] = await Promise.all([
-      this.prisma.student.findUniqueOrThrow({
-        where: { id: artwork.studentId },
-      }),
-      this.prisma.orgSetting.findUnique({ where: { id: 'default' } }),
-      this.prisma.posterTemplate.findUnique({ where: { key: templateKey } }),
+    const [student, brand] = await Promise.all([
+      this.prisma.student.findUnique({ where: { id: artwork.studentId } }),
+      this.brand.getBrand(),
     ]);
+    if (!student) {
+      throw Errors.cannotView();
+    }
+    const template = brand.templates.find((t) => t.key === templateKey);
     if (template && !template.enabled) {
-      throw new BadRequestException('该海报模板已停用');
+      throw Errors.validation('该海报模板已停用');
+    }
+    if (!this.brand.isLogoConfigured(brand.logoUrl)) {
+      throw Errors.logoNotConfigured();
     }
 
-    const createdOn = artwork.createdOn.toISOString().slice(0, 10);
-    const watermarkText = settings?.watermarkText ?? '美术教培 · 作品水印';
+    const createdAt = artwork.createdAt.toISOString();
+    const watermarkText = brand.watermarkText ?? '';
     const style = TEMPLATE_STYLES[templateKey];
     const recipe: PosterRecipe = {
       templateKey,
       studentName: student.name,
-      createdOn,
-      theme: artwork.theme,
+      createdAt,
+      title: artwork.title ?? artwork.courseTheme ?? style.title,
       watermarkText,
-      logoUrl: settings?.logoUrl ?? null,
+      watermarkOpacity: brand.watermarkOpacity,
+      watermarkPosition: brand.watermarkPosition,
+      logoUrl: brand.logoUrl as string,
       logoEmbedded: true,
-      overlays: ['name', 'createdOn', 'logo', 'watermark'],
+      overlays: ['name', 'createdAt', 'logo', 'watermark'],
       background: style.background,
       accent: style.accent,
       frame: style.frame,
@@ -58,17 +67,12 @@ export class PosterService {
     const artworkDataUri = `data:image/png;base64,${artworkPng.toString('base64')}`;
 
     let logoDataUri: string | null = null;
-    if (settings?.logoUrl) {
-      try {
-        const logoBuf = await this.loadImageBuffer(settings.logoUrl);
-        const logoPng = await sharp(logoBuf).resize(192, 192).png().toBuffer();
-        logoDataUri = `data:image/png;base64,${logoPng.toString('base64')}`;
-      } catch {
-        logoDataUri = null;
-      }
-    }
-    if (!logoDataUri) {
-      logoDataUri = await this.defaultLogoDataUri(style.frame);
+    try {
+      const logoBuf = await this.loadImageBuffer(brand.logoUrl as string);
+      const logoPng = await sharp(logoBuf).resize(192, 192).png().toBuffer();
+      logoDataUri = `data:image/png;base64,${logoPng.toString('base64')}`;
+    } catch {
+      throw Errors.logoNotConfigured();
     }
 
     const svg = buildPosterSvg({ artworkDataUri, logoDataUri, recipe });
@@ -79,7 +83,7 @@ export class PosterService {
       'image/png',
     );
 
-    return this.prisma.poster.create({
+    await this.prisma.poster.create({
       data: {
         artworkId: artwork.id,
         templateKey,
@@ -87,6 +91,12 @@ export class PosterService {
         recipe: recipe as object,
       },
     });
+
+    return {
+      previewUrl: stored.url,
+      downloadUrl: stored.url,
+      templateKey,
+    };
   }
 
   private async loadImageBuffer(url: string): Promise<Buffer> {
@@ -104,19 +114,10 @@ export class PosterService {
     if (url.startsWith('http://') || url.startsWith('https://')) {
       const res = await fetch(url);
       if (!res.ok) {
-        throw new BadRequestException('无法读取作品图片');
+        throw Errors.validation('无法读取作品图片');
       }
       return Buffer.from(await res.arrayBuffer());
     }
-    throw new BadRequestException('不支持的图片地址');
-  }
-
-  private async defaultLogoDataUri(color: string): Promise<string> {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192">
-      <rect width="192" height="192" rx="32" fill="${color}"/>
-      <text x="96" y="112" text-anchor="middle" fill="#ffffff" font-size="42" font-family="sans-serif">LOGO</text>
-    </svg>`;
-    const png = await sharp(Buffer.from(svg)).png().toBuffer();
-    return `data:image/png;base64,${png.toString('base64')}`;
+    throw Errors.validation('不支持的图片地址');
   }
 }

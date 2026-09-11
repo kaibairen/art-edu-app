@@ -5,7 +5,7 @@
 
 ## 决策
 
-海报在 API 内用 **sharp 栅格化 SVG** 合成，强制叠加学员姓名、创作时间、LOGO、平铺水印。提供 `classic` / `gallery` / `festival` 三套模板。
+海报在 API 内用 **sharp 栅格化 SVG** 合成，强制叠加学员姓名、创作时间、LOGO、水印。P0 模板 key：`simple` / `frame` / `magazine`。未配置 LOGO 时拒绝生成（`LOGO_NOT_CONFIGURED`）。
 
 ## 理由
 

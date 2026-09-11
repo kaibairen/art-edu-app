@@ -1,12 +1,8 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@prisma/client';
 import { IS_PUBLIC_KEY, ROLES_KEY } from '../common/decorators';
+import { Errors } from '../common/errors';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -31,7 +27,7 @@ export class RolesGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest();
     if (!user || !required.includes(user.role)) {
-      throw new ForbiddenException('当前角色无权访问该接口');
+      throw Errors.forbidden();
     }
     return true;
   }

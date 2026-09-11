@@ -1,140 +1,219 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+import { Prisma, Role, StudentStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { BindDto, CreateStudentDto, CreateUserDto } from '../common/dto';
+import {
+  CreateAccountDto,
+  CreateBindingDto,
+  CreateStudentDto,
+  UpdateAccountDto,
+  UpdateAccountStatusDto,
+  UpdateStudentDto,
+} from '../common/dto';
+import { Errors } from '../common/errors';
+import { toAccountDto, toBindingDto, toStudentDto } from '../common/mappers';
+import { cursorWhere, parseLimit, toPage } from '../common/pagination';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  listUsers(role?: Role) {
-    return this.prisma.user.findMany({
-      where: role ? { role } : undefined,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        phone: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
+  async listAccounts(query: { role?: Role; cursor?: string; limit?: number }) {
+    const limit = parseLimit(query.limit);
+    const extra = cursorWhere(query.cursor);
+    const rows = await this.prisma.user.findMany({
+      where: {
+        ...(query.role ? { role: query.role } : {}),
+        ...(extra ?? {}),
       },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
     });
+    return toPage(rows, limit, toAccountDto);
   }
 
-  async createUser(dto: CreateUserDto) {
-    if (dto.role === Role.admin) {
-      throw new BadRequestException('管理端不可通过此接口创建管理员');
+  async getAccount(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw Errors.notFound('账号不存在');
     }
-    const exists = await this.prisma.user.findUnique({
-      where: { phone: dto.phone },
-    });
+    return toAccountDto(user);
+  }
+
+  async createAccount(dto: CreateAccountDto) {
+    if (dto.role === Role.admin) {
+      throw Errors.validation('管理端不可通过此接口创建管理员');
+    }
+    const exists = await this.prisma.user.findUnique({ where: { phone: dto.phone } });
     if (exists) {
-      throw new BadRequestException('手机号已存在');
+      throw Errors.conflictPhone();
     }
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         phone: dto.phone,
         email: dto.email,
-        name: dto.name,
+        displayName: dto.displayName,
         role: dto.role,
         passwordHash,
-      },
-      select: {
-        id: true,
-        phone: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
+        classNames: dto.role === Role.teacher ? dto.classNames ?? [] : [],
       },
     });
+    return toAccountDto(user);
   }
 
-  listStudents() {
-    return this.prisma.student.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        parentBindings: {
-          include: { parent: { select: { id: true, name: true, phone: true } } },
-        },
-        teacherBindings: {
-          include: {
-            teacher: { select: { id: true, name: true, phone: true } },
-          },
-        },
-      },
+  async updateAccount(id: string, dto: UpdateAccountDto) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw Errors.notFound('账号不存在');
+    }
+    const data: Prisma.UserUpdateInput = {
+      displayName: dto.displayName,
+      email: dto.email,
+    };
+    if (dto.classNames && user.role === Role.teacher) {
+      data.classNames = dto.classNames;
+    }
+    if (dto.password) {
+      data.passwordHash = await bcrypt.hash(dto.password, 10);
+    }
+    const updated = await this.prisma.user.update({ where: { id }, data });
+    return toAccountDto(updated);
+  }
+
+  async updateAccountStatus(id: string, dto: UpdateAccountStatusDto) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw Errors.notFound('账号不存在');
+    }
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { status: dto.status },
     });
+    if (dto.status === 'disabled') {
+      await this.prisma.refreshToken.updateMany({
+        where: { userId: id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+    }
+    return toAccountDto(updated);
   }
 
-  createStudent(dto: CreateStudentDto) {
-    return this.prisma.student.create({
+  async listStudents(query: { cursor?: string; limit?: number }) {
+    const limit = parseLimit(query.limit);
+    const extra = cursorWhere(query.cursor);
+    const rows = await this.prisma.student.findMany({
+      where: extra,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
+      include: { _count: { select: { parentBindings: true } } },
+    });
+    return toPage(rows, limit, toStudentDto);
+  }
+
+  async getStudent(id: string) {
+    const student = await this.prisma.student.findUnique({
+      where: { id },
+      include: { _count: { select: { parentBindings: true } } },
+    });
+    if (!student) {
+      throw Errors.notFound('学员不存在');
+    }
+    return toStudentDto(student);
+  }
+
+  async createStudent(dto: CreateStudentDto) {
+    const student = await this.prisma.student.create({
       data: {
         name: dto.name,
-        gender: dto.gender,
+        className: dto.className,
         note: dto.note,
+        gender: dto.gender,
+        birthday: dto.birthday ? new Date(dto.birthday) : undefined,
+        status: StudentStatus.active,
+      },
+      include: { _count: { select: { parentBindings: true } } },
+    });
+    return toStudentDto(student);
+  }
+
+  async updateStudent(id: string, dto: UpdateStudentDto) {
+    const existing = await this.prisma.student.findUnique({ where: { id } });
+    if (!existing) {
+      throw Errors.notFound('学员不存在');
+    }
+    const student = await this.prisma.student.update({
+      where: { id },
+      data: {
+        name: dto.name,
+        className: dto.className,
+        note: dto.note,
+        status: dto.status,
+        gender: dto.gender,
         birthday: dto.birthday ? new Date(dto.birthday) : undefined,
       },
+      include: { _count: { select: { parentBindings: true } } },
     });
+    return toStudentDto(student);
   }
 
-  async bindParent(dto: BindDto) {
-    const [parent, student] = await Promise.all([
-      this.prisma.user.findUnique({ where: { id: dto.userId } }),
-      this.prisma.student.findUnique({ where: { id: dto.studentId } }),
-    ]);
-    if (!parent || parent.role !== Role.parent) {
-      throw new BadRequestException('用户不是家长');
-    }
+  async deleteStudent(id: string) {
+    const student = await this.prisma.student.findUnique({
+      where: { id },
+      include: { _count: { select: { artworks: true } } },
+    });
     if (!student) {
-      throw new NotFoundException('学员不存在');
+      throw Errors.notFound('学员不存在');
     }
-    return this.prisma.parentStudent.upsert({
-      where: {
-        parentId_studentId: { parentId: parent.id, studentId: student.id },
-      },
-      update: {},
-      create: { parentId: parent.id, studentId: student.id },
-    });
-  }
-
-  async bindTeacher(dto: BindDto) {
-    const [teacher, student] = await Promise.all([
-      this.prisma.user.findUnique({ where: { id: dto.userId } }),
-      this.prisma.student.findUnique({ where: { id: dto.studentId } }),
-    ]);
-    if (!teacher || teacher.role !== Role.teacher) {
-      throw new BadRequestException('用户不是教师');
+    if (student._count.artworks > 0) {
+      throw Errors.conflictStudentHasArtwork();
     }
-    if (!student) {
-      throw new NotFoundException('学员不存在');
-    }
-    return this.prisma.teacherStudent.upsert({
-      where: {
-        teacherId_studentId: { teacherId: teacher.id, studentId: student.id },
-      },
-      update: {},
-      create: { teacherId: teacher.id, studentId: student.id },
-    });
-  }
-
-  async unbindParent(dto: BindDto) {
-    await this.prisma.parentStudent.deleteMany({
-      where: { parentId: dto.userId, studentId: dto.studentId },
-    });
+    await this.prisma.student.delete({ where: { id } });
     return { ok: true };
   }
 
-  async unbindTeacher(dto: BindDto) {
-    await this.prisma.teacherStudent.deleteMany({
-      where: { teacherId: dto.userId, studentId: dto.studentId },
+  async listBindings(query: { cursor?: string; limit?: number }) {
+    const limit = parseLimit(query.limit);
+    const extra = cursorWhere(query.cursor);
+    const rows = await this.prisma.parentStudent.findMany({
+      where: extra,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
     });
+    return toPage(rows, limit, toBindingDto);
+  }
+
+  async createBinding(dto: CreateBindingDto) {
+    const [parent, student] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: dto.parentId } }),
+      this.prisma.student.findUnique({ where: { id: dto.studentId } }),
+    ]);
+    if (!parent || parent.role !== Role.parent) {
+      throw Errors.validation('用户不是家长');
+    }
+    if (!student) {
+      throw Errors.notFound('学员不存在');
+    }
+    const existing = await this.prisma.parentStudent.findUnique({
+      where: {
+        parentId_studentId: { parentId: parent.id, studentId: student.id },
+      },
+    });
+    if (existing) {
+      throw Errors.conflictBinding();
+    }
+    const row = await this.prisma.parentStudent.create({
+      data: { parentId: parent.id, studentId: student.id },
+    });
+    return toBindingDto(row);
+  }
+
+  async deleteBinding(id: string) {
+    const row = await this.prisma.parentStudent.findUnique({ where: { id } });
+    if (!row) {
+      throw Errors.notFound('绑定不存在');
+    }
+    await this.prisma.parentStudent.delete({ where: { id } });
     return { ok: true };
   }
 }
