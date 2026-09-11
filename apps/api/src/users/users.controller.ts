@@ -3,12 +3,23 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  Param,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { Roles } from '../common/decorators';
-import { BindDto, CreateStudentDto, CreateUserDto } from '../common/dto';
+import {
+  CreateAccountDto,
+  CreateBindingDto,
+  CreateStudentDto,
+  PageQueryDto,
+  UpdateAccountDto,
+  UpdateAccountStatusDto,
+  UpdateStudentDto,
+} from '../common/dto';
 import { UsersService } from './users.service';
 
 @Controller('admin')
@@ -16,19 +27,40 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly users: UsersService) {}
 
-  @Get('users')
-  listUsers(@Query('role') role?: Role) {
-    return this.users.listUsers(role);
+  @Get('accounts')
+  listAccounts(
+    @Query('role') role?: Role,
+    @Query() page?: PageQueryDto,
+  ) {
+    return this.users.listAccounts({ role, cursor: page?.cursor, limit: page?.limit });
   }
 
-  @Post('users')
-  createUser(@Body() dto: CreateUserDto) {
-    return this.users.createUser(dto);
+  @Post('accounts')
+  createAccount(@Body() dto: CreateAccountDto) {
+    return this.users.createAccount(dto);
+  }
+
+  @Get('accounts/:id')
+  getAccount(@Param('id') id: string) {
+    return this.users.getAccount(id);
+  }
+
+  @Patch('accounts/:id')
+  updateAccount(@Param('id') id: string, @Body() dto: UpdateAccountDto) {
+    return this.users.updateAccount(id, dto);
+  }
+
+  @Patch('accounts/:id/status')
+  updateAccountStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateAccountStatusDto,
+  ) {
+    return this.users.updateAccountStatus(id, dto);
   }
 
   @Get('students')
-  listStudents() {
-    return this.users.listStudents();
+  listStudents(@Query() page: PageQueryDto) {
+    return this.users.listStudents(page);
   }
 
   @Post('students')
@@ -36,23 +68,35 @@ export class UsersController {
     return this.users.createStudent(dto);
   }
 
-  @Post('bindings/parent-student')
-  bindParent(@Body() dto: BindDto) {
-    return this.users.bindParent(dto);
+  @Get('students/:id')
+  getStudent(@Param('id') id: string) {
+    return this.users.getStudent(id);
   }
 
-  @Delete('bindings/parent-student')
-  unbindParent(@Body() dto: BindDto) {
-    return this.users.unbindParent(dto);
+  @Patch('students/:id')
+  updateStudent(@Param('id') id: string, @Body() dto: UpdateStudentDto) {
+    return this.users.updateStudent(id, dto);
   }
 
-  @Post('bindings/teacher-student')
-  bindTeacher(@Body() dto: BindDto) {
-    return this.users.bindTeacher(dto);
+  @Delete('students/:id')
+  @HttpCode(200)
+  deleteStudent(@Param('id') id: string) {
+    return this.users.deleteStudent(id);
   }
 
-  @Delete('bindings/teacher-student')
-  unbindTeacher(@Body() dto: BindDto) {
-    return this.users.unbindTeacher(dto);
+  @Get('bindings')
+  listBindings(@Query() page: PageQueryDto) {
+    return this.users.listBindings(page);
+  }
+
+  @Post('bindings')
+  createBinding(@Body() dto: CreateBindingDto) {
+    return this.users.createBinding(dto);
+  }
+
+  @Delete('bindings/:id')
+  @HttpCode(200)
+  deleteBinding(@Param('id') id: string) {
+    return this.users.deleteBinding(id);
   }
 }

@@ -6,7 +6,8 @@
   "workspaces": [
     "apps/api",
     "apps/admin",
-    "packages/shared"
+    "packages/shared",
+    "packages/tokens"
   ],
   "scripts": {
     "dev:api": "npm run start:dev -w @art-edu/api",

@@ -14,8 +14,7 @@ import { JwtStrategy } from './jwt.strategy';
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET', 'dev-secret'),
         signOptions: {
-          // Nest JWT 类型要求 ms.StringValue；环境变量按秒或 7d 字符串配置
-          expiresIn: (config.get<string>('JWT_EXPIRES_IN') ?? '7d') as `${number}d`,
+          expiresIn: (config.get<string>('JWT_EXPIRES_IN') ?? '2h') as '2h',
         },
       }),
     }),

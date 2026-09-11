@@ -1,14 +1,25 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, Role, StudentStatus, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 const TEMPLATES = [
   {
-    id: 'classic',
-    key: 'classic',
-    name: '经典画框',
-    description: '米白底 + 深色画框，适合日常课堂作品。',
+    id: 'simple',
+    key: 'simple',
+    name: '简约',
+    description: '干净留白，突出作品本身。',
+    metadata: {
+      background: '#F7F4EE',
+      accent: '#1F2937',
+      frame: '#D6D3D1',
+    },
+  },
+  {
+    id: 'frame',
+    key: 'frame',
+    name: '画框',
+    description: '画框陈列，适合课堂作品展示。',
     metadata: {
       background: '#F6EFE4',
       accent: '#3D2B1F',
@@ -16,21 +27,10 @@ const TEMPLATES = [
     },
   },
   {
-    id: 'gallery',
-    key: 'gallery',
-    name: '展厅白墙',
-    description: '美术馆白墙风格，突出作品本身。',
-    metadata: {
-      background: '#F4F1EA',
-      accent: '#1F2937',
-      frame: '#111827',
-    },
-  },
-  {
-    id: 'festival',
-    key: 'festival',
-    name: '节日彩章',
-    description: '暖色节日配色，适合活动展示与分享。',
+    id: 'magazine',
+    key: 'magazine',
+    name: '杂志',
+    description: '杂志封面风格，适合分享传播。',
     metadata: {
       background: '#FFF4E6',
       accent: '#9A3412',
@@ -51,73 +51,101 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { phone: adminPhone },
-    update: {},
+    update: {
+      displayName: '校长',
+      status: UserStatus.active,
+    },
     create: {
       phone: adminPhone,
       email: 'admin@artedu.local',
       passwordHash: adminHash,
-      name: '校长',
+      displayName: '校长',
       role: Role.admin,
+      status: UserStatus.active,
     },
   });
 
   const teacher = await prisma.user.upsert({
     where: { phone: '13800000001' },
-    update: {},
+    update: {
+      displayName: '林老师',
+      status: UserStatus.active,
+      classNames: ['创意水彩班'],
+    },
     create: {
       phone: '13800000001',
       email: 'teacher@artedu.local',
       passwordHash: teacherHash,
-      name: '林老师',
+      displayName: '林老师',
       role: Role.teacher,
+      status: UserStatus.active,
+      classNames: ['创意水彩班'],
     },
   });
 
   const parentA = await prisma.user.upsert({
     where: { phone: '13800000002' },
-    update: {},
+    update: {
+      displayName: '小明妈妈',
+      status: UserStatus.active,
+    },
     create: {
       phone: '13800000002',
       email: 'parent.ming@artedu.local',
       passwordHash: parentHash,
-      name: '小明妈妈',
+      displayName: '小明妈妈',
       role: Role.parent,
+      status: UserStatus.active,
     },
   });
 
   const parentB = await prisma.user.upsert({
     where: { phone: '13800000003' },
-    update: {},
+    update: {
+      displayName: '小红爸爸',
+      status: UserStatus.active,
+    },
     create: {
       phone: '13800000003',
       email: 'parent.hong@artedu.local',
       passwordHash: parentHash,
-      name: '小红爸爸',
+      displayName: '小红爸爸',
       role: Role.parent,
+      status: UserStatus.active,
     },
   });
 
   const xiaoming = await prisma.student.upsert({
     where: { id: '11111111-1111-1111-1111-111111111111' },
-    update: {},
+    update: {
+      className: '创意水彩班',
+      status: StudentStatus.active,
+    },
     create: {
       id: '11111111-1111-1111-1111-111111111111',
       name: '小明',
+      className: '创意水彩班',
       gender: '男',
       birthday: new Date('2016-05-12'),
       note: '喜好水彩与线描',
+      status: StudentStatus.active,
     },
   });
 
   const xiaohong = await prisma.student.upsert({
     where: { id: '22222222-2222-2222-2222-222222222222' },
-    update: {},
+    update: {
+      className: '创意水彩班',
+      status: StudentStatus.active,
+    },
     create: {
       id: '22222222-2222-2222-2222-222222222222',
       name: '小红',
+      className: '创意水彩班',
       gender: '女',
       birthday: new Date('2017-09-03'),
       note: '喜好彩铅与拼贴',
+      status: StudentStatus.active,
     },
   });
 
@@ -137,22 +165,6 @@ async function main() {
     create: { parentId: parentB.id, studentId: xiaohong.id },
   });
 
-  await prisma.teacherStudent.upsert({
-    where: {
-      teacherId_studentId: { teacherId: teacher.id, studentId: xiaoming.id },
-    },
-    update: {},
-    create: { teacherId: teacher.id, studentId: xiaoming.id },
-  });
-
-  await prisma.teacherStudent.upsert({
-    where: {
-      teacherId_studentId: { teacherId: teacher.id, studentId: xiaohong.id },
-    },
-    update: {},
-    create: { teacherId: teacher.id, studentId: xiaohong.id },
-  });
-
   await prisma.orgSetting.upsert({
     where: { id: 'default' },
     update: {},
@@ -161,6 +173,8 @@ async function main() {
       orgName: '星光美术教室',
       logoUrl: null,
       watermarkText: '星光美术 · 作品仅供家校分享',
+      watermarkOpacity: 0.2,
+      watermarkPosition: 'bottomRight',
     },
   });
 
@@ -171,6 +185,7 @@ async function main() {
         name: tpl.name,
         description: tpl.description,
         metadata: tpl.metadata,
+        enabled: true,
       },
       create: tpl,
     });
@@ -219,6 +234,7 @@ async function main() {
     parentA: parentA.phone,
     parentB: parentB.phone,
     students: [xiaoming.name, xiaohong.name],
+    className: '创意水彩班',
   });
 }
 

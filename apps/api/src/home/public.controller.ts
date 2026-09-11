@@ -18,10 +18,10 @@ export class PublicController {
       this.home.listPublished(),
     ]);
     return {
-      settings: settings ?? {
-        orgName: '美术教培机构',
-        logoUrl: null as string | null,
-        watermarkText: '',
+      settings: {
+        orgName: settings?.orgName ?? '美术教培机构',
+        logoUrl: settings?.logoUrl ?? null,
+        watermarkText: settings?.watermarkText ?? '',
       },
       contents,
     };
@@ -29,7 +29,12 @@ export class PublicController {
 
   @Public()
   @Get('settings')
-  settings() {
-    return this.prisma.orgSetting.findUnique({ where: { id: 'default' } });
+  async settings() {
+    const row = await this.prisma.orgSetting.findUnique({ where: { id: 'default' } });
+    return {
+      orgName: row?.orgName ?? null,
+      logoUrl: row?.logoUrl ?? null,
+      watermarkText: row?.watermarkText ?? null,
+    };
   }
 }

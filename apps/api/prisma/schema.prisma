@@ -13,34 +13,67 @@ enum Role {
   parent
 }
 
-model User {
-  id           String   @id @default(uuid())
-  phone        String   @unique
-  email        String?  @unique
-  passwordHash String
-  name         String
-  role         Role
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+enum UserStatus {
+  active
+  disabled
+}
 
-  parentBindings  ParentStudent[]
-  teacherBindings TeacherStudent[]
-  uploadedWorks   Artwork[]        @relation("TeacherArtworks")
+enum StudentStatus {
+  active
+  archived
+}
+
+enum WatermarkPosition {
+  topLeft
+  topRight
+  bottomLeft
+  bottomRight
+  center
+}
+
+model User {
+  id           String     @id @default(uuid())
+  phone        String     @unique
+  email        String?    @unique
+  passwordHash String
+  displayName  String
+  role         Role
+  status       UserStatus @default(active)
+  classNames   String[]   @default([])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  parentBindings ParentStudent[]
+  uploadedWorks  Artwork[]       @relation("TeacherArtworks")
+  refreshTokens  RefreshToken[]
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Student {
-  id        String    @id @default(uuid())
+  id        String        @id @default(uuid())
   name      String
+  className String?
   birthday  DateTime?
   gender    String?
   note      String?
   avatarUrl String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  status    StudentStatus @default(active)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  parentBindings  ParentStudent[]
-  teacherBindings TeacherStudent[]
-  artworks        Artwork[]
+  parentBindings ParentStudent[]
+  artworks       Artwork[]
 }
 
 /// 家长-学员绑定（一对多：一名家长可绑定多名学员）
@@ -57,38 +90,25 @@ model ParentStudent {
   @@index([studentId])
 }
 
-/// 教师负责学员
-model TeacherStudent {
-  id        String   @id @default(uuid())
-  teacherId String
-  studentId String
-  createdAt DateTime @default(now())
-  teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@unique([teacherId, studentId])
-  @@index([teacherId])
-  @@index([studentId])
-}
-
 model Artwork {
-  id              String   @id @default(uuid())
-  studentId       String
-  teacherId       String
-  imageUrl        String
-  theme           String
-  createdOn       DateTime
-  textComment     String?
-  voiceCommentUrl String?
-  videoCommentUrl String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String   @id @default(uuid())
+  studentId   String
+  teacherId   String
+  imageUrl    String
+  thumbUrl    String
+  title       String?
+  courseTheme String?
+  /// 创作时间（列表倒序键）；由旧 createdOn 迁入
+  createdAt   DateTime
+  commentText String?
+  uploadedAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Restrict)
   teacher User     @relation("TeacherArtworks", fields: [teacherId], references: [id])
   posters Poster[]
 
-  @@index([studentId, createdOn])
+  @@index([studentId, createdAt])
 }
 
 model Poster {
@@ -104,20 +124,23 @@ model Poster {
 }
 
 model OrgSetting {
-  id            String   @id @default("default")
-  orgName       String
-  logoUrl       String?
-  watermarkText String
-  updatedAt     DateTime @updatedAt
+  id                String             @id @default("default")
+  orgName           String?
+  logoUrl           String?
+  watermarkText     String?
+  watermarkOpacity  Float              @default(0.2)
+  watermarkPosition WatermarkPosition  @default(bottomRight)
+  updatedAt         DateTime           @updatedAt
 }
 
 model PosterTemplate {
   id          String   @id
   key         String   @unique
   name        String
-  description String
+  description String   @default("")
   enabled     Boolean  @default(true)
-  metadata    Json
+  previewUrl  String?
+  metadata    Json     @default("{}")
   updatedAt   DateTime @updatedAt
 }
 
