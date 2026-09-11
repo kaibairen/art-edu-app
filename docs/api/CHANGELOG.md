@@ -2,6 +2,8 @@
 
 基线：`cursor/art-edu-mvp-ec9b`（PR #1 / v0.1.0-mvp **预研**）。预研实现可跑，但**不能**视为已按本契约交付。
 
+- F-011 / classNames 暴露到 OpenAPI 与 api-types（Account / CreateAccountRequest / UpdateAccountRequest；字段对齐 Nest 的 displayName、status=active|disabled。实现已有，仅补契约面）
+
 本期只对齐 P0。`/admin/home-contents` 与 `GET /public/home` 仍保留，**不作为本期验收**。
 
 ## 路径

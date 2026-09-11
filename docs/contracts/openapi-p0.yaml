@@ -80,6 +80,11 @@ components:
       enum: [active, archived]
       description: 有作品的学员不可删（409 CONFLICT_STUDENT_HAS_ARTWORK），改为 archived
 
+    UserStatus:
+      type: string
+      enum: [active, disabled]
+      description: 账号状态。停用走 PATCH /admin/accounts/{id}/status，不是 UpdateAccountRequest
+
     AuthUser:
       type: object
       required: [id, phone, email, name, role, disabled]
@@ -272,35 +277,55 @@ components:
 
     Account:
       type: object
-      required: [id, phone, email, name, role, disabled, createdAt]
+      required: [id, phone, displayName, role, status, createdAt]
       properties:
         id: { type: string }
         phone: { type: string }
         email: { type: string, nullable: true }
-        name: { type: string }
+        displayName: { type: string }
         role: { $ref: '#/components/schemas/Role' }
-        disabled: { type: boolean }
+        status: { $ref: '#/components/schemas/UserStatus' }
+        classNames:
+          type: array
+          items: { type: string }
+          description: 教师负责班级，匹配 Student.className。Nest 响应始终返回数组，非教师一般为 []
         createdAt: { type: string, format: date-time }
+      example:
+        id: acc-teacher
+        phone: '13800000001'
+        email: null
+        displayName: 林老师
+        role: teacher
+        status: active
+        classNames: [创意水彩班]
+        createdAt: '2026-09-01T00:00:00.000Z'
 
     CreateAccountRequest:
       type: object
-      required: [phone, name, password, role]
+      required: [phone, displayName, password, role]
       properties:
         phone: { type: string }
-        name: { type: string }
+        displayName: { type: string }
         password: { type: string }
         role:
           type: string
           enum: [teacher, parent]
         email: { type: string }
+        classNames:
+          type: array
+          items: { type: string }
+          description: 仅教师生效；创建非教师账号时 Nest 会落成 []
 
     UpdateAccountRequest:
       type: object
       properties:
-        name: { type: string }
+        displayName: { type: string }
         email: { type: string, nullable: true }
-        disabled: { type: boolean }
         password: { type: string }
+        classNames:
+          type: array
+          items: { type: string }
+          description: 仅教师生效。停用账号请走 PATCH /admin/accounts/{id}/status
 
     CreateStudentRequest:
       type: object

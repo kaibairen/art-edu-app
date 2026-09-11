@@ -15,6 +15,7 @@ export {
   POSTER_TEMPLATE_KEYS,
   ROLES,
   STUDENT_STATUSES,
+  USER_STATUSES,
   WATERMARK_POSITIONS,
   type Account,
   type Artwork,
@@ -47,11 +48,14 @@ export {
   type StudentStatus,
   type TokenPair,
   type UpdateAccountRequest,
+  type UpdateAccountStatusRequest,
   type UpdateBrandRequest,
   type UpdateStudentRequest,
+  type UserStatus,
   type WatermarkPosition,
 } from './dto';
 export {
+  EXAMPLE_ACCOUNT,
   EXAMPLE_ACCOUNT_DISABLED,
   EXAMPLE_ACCOUNT_DISABLED_ISSUED_TOKEN,
   EXAMPLE_ARTWORK,
