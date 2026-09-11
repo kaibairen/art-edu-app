@@ -4,6 +4,7 @@ import 'package:art_edu_mobile/src/app.dart';
 import 'package:art_edu_mobile/src/models.dart';
 import 'package:art_edu_mobile/src/screens/poster_preview_screen.dart';
 import 'package:art_edu_mobile/src/screens/poster_result_screen.dart';
+import 'package:art_edu_mobile/src/screens/public_home_screen.dart';
 import 'package:art_edu_mobile/src/screens/upload_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +16,27 @@ class _FakeApiClient extends ApiClient {
     return PosterPreview(
       previewUrl: 'http://x/aw-demo-simple-preview.png',
       templateKey: templateKey,
+    );
+  }
+
+  @override
+  Future<PublicHome> getPublicHome() async {
+    return PublicHome(
+      brand: PublicHomeBrand(orgName: '星光美术'),
+      banners: [
+        PublicBanner(id: 'b1', imageUrl: 'http://x/b.png', title: '秋季招生'),
+      ],
+      courses: [
+        PublicCourse(id: 'c1', title: '创意水彩', summary: '周六上午小班'),
+      ],
+      featuredArtworks: [
+        PublicFeaturedArtwork(
+          id: 'f1',
+          imageUrl: 'http://x/f.png',
+          title: '春天的树',
+          studentDisplayName: '小明',
+        ),
+      ],
     );
   }
 }
@@ -34,6 +56,7 @@ void main() {
     expect(find.text('家长端登录'), findsOneWidget);
     expect(find.textContaining('仅能查看已绑定的孩子'), findsOneWidget);
     expect(find.text('手机号'), findsOneWidget);
+    expect(find.text('先看看公开首页'), findsOneWidget);
   });
 
   testWidgets('teacher login screen renders', (tester) async {
@@ -137,6 +160,31 @@ void main() {
   test('poster template labels are 简约/画框/杂志', () {
     expect(posterTemplates.map((e) => e.key).toList(), ['simple', 'frame', 'magazine']);
     expect(posterTemplates.map((e) => e.label).toList(), ['简约', '画框', '杂志']);
+  });
+
+  testWidgets('public home renders banners then courses then featured', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: PublicHomeScreen(api: _FakeApiClient()),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('机构首页'), findsOneWidget);
+    expect(find.textContaining('公开卡无点评'), findsOneWidget);
+    expect(find.textContaining('课程无长文'), findsOneWidget);
+    expect(find.text('轮播'), findsOneWidget);
+    expect(find.text('课程介绍'), findsOneWidget);
+    expect(find.text('优秀作品'), findsOneWidget);
+    expect(find.text('秋季招生'), findsOneWidget);
+    expect(find.text('创意水彩'), findsOneWidget);
+    expect(find.text('春天的树'), findsOneWidget);
+    expect(find.text('小明'), findsOneWidget);
+    expect(find.text('点评'), findsNothing);
+    expect(find.textContaining('commentText'), findsNothing);
+
+    final banners = tester.getTopLeft(find.text('轮播'));
+    final courses = tester.getTopLeft(find.text('课程介绍'));
+    final featured = tester.getTopLeft(find.text('优秀作品'));
+    expect(banners.dy < courses.dy, isTrue);
+    expect(courses.dy < featured.dy, isTrue);
   });
 
   test('preview and download urls must differ', () {

@@ -126,6 +126,15 @@ class ApiClient {
     return PosterPreview.fromJson(data);
   }
 
+  /// 未登录可读。不带 Authorization，避免把登录态绑到公开首页。
+  Future<PublicHome> getPublicHome() async {
+    final data = _decode(await http.get(
+      Uri.parse('$baseUrl/public/home'),
+      headers: {'Content-Type': 'application/json'},
+    )) as Map<String, dynamic>;
+    return PublicHome.fromJson(data);
+  }
+
   /// 正式成片。主按钮下载必须用本接口。
   Future<PosterDownload> downloadPoster(String artworkId, String templateKey) async {
     final data = _decode(await http.post(

@@ -1,262 +1,66 @@
+<!--
+  US-P1-01 管理端首页内容。正式类型来自 @art-edu/api-types。
+  路径：P1_HOME_PATHS
+    /admin/home/banners
+    /admin/home/courses
+    /admin/home/featured-artworks
+    /public/home
+  硬约束：公开卡无点评；课程无长文。
+-->
 <template>
   <div>
-    <h2 class="page-title">首页运营</h2>
-    <p class="page-hint">
-      轮播 / 优秀作品 / 课程三块。公开优秀作品卡只有图片、标题、学员展示名，不含点评。
-    </p>
-    <el-tabs v-model="tab">
+    <div class="page-bar">
+      <div>
+        <h2 class="page-title">首页内容</h2>
+        <p class="page-hint">
+          维护对外公开的轮播、课程介绍和优秀作品。公开卡无点评；课程无长文。
+        </p>
+      </div>
+      <el-button @click="openPreview">公开首页预览</el-button>
+    </div>
+
+    <el-tabs v-model="activeTab">
       <el-tab-pane label="轮播" name="banners">
-        <el-button type="primary" @click="openBanner()">新增轮播</el-button>
-        <el-table :data="banners" stripe class="table">
-          <el-table-column prop="title" label="标题" />
-          <el-table-column prop="sortOrder" label="排序" width="80" />
-          <el-table-column label="启用" width="80">
-            <template #default="{ row }">{{ row.enabled ? '是' : '否' }}</template>
-          </el-table-column>
-          <el-table-column label="操作" width="180">
-            <template #default="{ row }">
-              <el-button text @click="openBanner(row)">编辑</el-button>
-              <el-button text type="danger" @click="remove('/admin/home/banners', row.id)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+        <BannersPanel />
       </el-tab-pane>
-      <el-tab-pane label="优秀作品" name="featured">
-        <el-button type="primary" @click="openFeatured()">新增作品卡</el-button>
-        <el-table :data="featured" stripe class="table">
-          <el-table-column prop="title" label="标题" />
-          <el-table-column prop="studentDisplayName" label="学员" />
-          <el-table-column prop="sortOrder" label="排序" width="80" />
-          <el-table-column label="发布" width="80">
-            <template #default="{ row }">{{ row.published ? '是' : '否' }}</template>
-          </el-table-column>
-          <el-table-column label="操作" width="180">
-            <template #default="{ row }">
-              <el-button text @click="openFeatured(row)">编辑</el-button>
-              <el-button text type="danger" @click="remove('/admin/home/featured-artworks', row.id)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+      <el-tab-pane label="课程介绍" name="courses">
+        <CoursesPanel />
       </el-tab-pane>
-      <el-tab-pane label="课程" name="courses">
-        <el-button type="primary" @click="openCourse()">新增课程</el-button>
-        <el-table :data="courses" stripe class="table">
-          <el-table-column prop="title" label="标题" />
-          <el-table-column prop="summary" label="简介" />
-          <el-table-column prop="sortOrder" label="排序" width="80" />
-          <el-table-column label="发布" width="80">
-            <template #default="{ row }">{{ row.published ? '是' : '否' }}</template>
-          </el-table-column>
-          <el-table-column label="操作" width="180">
-            <template #default="{ row }">
-              <el-button text @click="openCourse(row)">编辑</el-button>
-              <el-button text type="danger" @click="remove('/admin/home/courses', row.id)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+      <el-tab-pane label="优秀作品公开" name="featured">
+        <FeaturedPanel />
       </el-tab-pane>
     </el-tabs>
-
-    <el-dialog v-model="bannerVisible" :title="bannerForm.id ? '编辑轮播' : '新增轮播'">
-      <el-form label-width="90px">
-        <el-form-item label="图片 URL"><el-input v-model="bannerForm.imageUrl" /></el-form-item>
-        <el-form-item label="标题"><el-input v-model="bannerForm.title" /></el-form-item>
-        <el-form-item label="副标题"><el-input v-model="bannerForm.subtitle" /></el-form-item>
-        <el-form-item label="链接"><el-input v-model="bannerForm.linkUrl" /></el-form-item>
-        <el-form-item label="排序"><el-input-number v-model="bannerForm.sortOrder" /></el-form-item>
-        <el-form-item label="启用"><el-switch v-model="bannerForm.enabled" /></el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="bannerVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveBanner">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="featuredVisible" :title="featuredForm.id ? '编辑作品卡' : '新增作品卡'">
-      <el-form label-width="90px">
-        <el-form-item label="图片 URL"><el-input v-model="featuredForm.imageUrl" /></el-form-item>
-        <el-form-item label="标题"><el-input v-model="featuredForm.title" /></el-form-item>
-        <el-form-item label="学员名"><el-input v-model="featuredForm.studentDisplayName" /></el-form-item>
-        <el-form-item label="排序"><el-input-number v-model="featuredForm.sortOrder" /></el-form-item>
-        <el-form-item label="发布"><el-switch v-model="featuredForm.published" /></el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="featuredVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveFeatured">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="courseVisible" :title="courseForm.id ? '编辑课程' : '新增课程'">
-      <el-form label-width="90px">
-        <el-form-item label="标题"><el-input v-model="courseForm.title" /></el-form-item>
-        <el-form-item label="简介"><el-input v-model="courseForm.summary" type="textarea" :maxlength="200" /></el-form-item>
-        <el-form-item label="封面 URL"><el-input v-model="courseForm.coverUrl" /></el-form-item>
-        <el-form-item label="排序"><el-input-number v-model="courseForm.sortOrder" /></el-form-item>
-        <el-form-item label="发布"><el-switch v-model="courseForm.published" /></el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="courseVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveCourse">保存</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
-import { ElMessage } from 'element-plus';
-import type { AdminBanner, AdminCourse, AdminFeaturedArtwork } from '@art-edu/api-types';
-import { http } from '../api/http';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import BannersPanel from './home/BannersPanel.vue';
+import CoursesPanel from './home/CoursesPanel.vue';
+import FeaturedPanel from './home/FeaturedPanel.vue';
 
-const tab = ref('banners');
-const banners = ref<AdminBanner[]>([]);
-const featured = ref<AdminFeaturedArtwork[]>([]);
-const courses = ref<AdminCourse[]>([]);
+const activeTab = ref('banners');
+const router = useRouter();
 
-const bannerVisible = ref(false);
-const featuredVisible = ref(false);
-const courseVisible = ref(false);
-
-const bannerForm = reactive({
-  id: '',
-  imageUrl: '',
-  title: '',
-  subtitle: '',
-  linkUrl: '',
-  sortOrder: 0,
-  enabled: false,
-});
-const featuredForm = reactive({
-  id: '',
-  imageUrl: '',
-  title: '',
-  studentDisplayName: '',
-  sortOrder: 0,
-  published: false,
-});
-const courseForm = reactive({
-  id: '',
-  title: '',
-  summary: '',
-  coverUrl: '',
-  sortOrder: 0,
-  published: false,
-});
-
-async function load() {
-  const [c, f, k] = await Promise.all([
-    http.get('/admin/home/banners'),
-    http.get('/admin/home/featured-artworks'),
-    http.get('/admin/home/courses'),
-  ]);
-  banners.value = c.data.items ?? [];
-  featured.value = f.data.items ?? [];
-  courses.value = k.data.items ?? [];
+function openPreview() {
+  void router.push('/preview');
 }
-
-function openBanner(row?: AdminBanner) {
-  Object.assign(bannerForm, {
-    id: row?.id ?? '',
-    imageUrl: row?.imageUrl ?? '',
-    title: row?.title ?? '',
-    subtitle: row?.subtitle ?? '',
-    linkUrl: row?.linkUrl ?? '',
-    sortOrder: row?.sortOrder ?? 0,
-    enabled: row?.enabled ?? false,
-  });
-  bannerVisible.value = true;
-}
-
-function openFeatured(row?: AdminFeaturedArtwork) {
-  Object.assign(featuredForm, {
-    id: row?.id ?? '',
-    imageUrl: row?.imageUrl ?? '',
-    title: row?.title ?? '',
-    studentDisplayName: row?.studentDisplayName ?? '',
-    sortOrder: row?.sortOrder ?? 0,
-    published: row?.published ?? false,
-  });
-  featuredVisible.value = true;
-}
-
-function openCourse(row?: AdminCourse) {
-  Object.assign(courseForm, {
-    id: row?.id ?? '',
-    title: row?.title ?? '',
-    summary: row?.summary ?? '',
-    coverUrl: row?.coverUrl ?? '',
-    sortOrder: row?.sortOrder ?? 0,
-    published: row?.published ?? false,
-  });
-  courseVisible.value = true;
-}
-
-async function saveBanner() {
-  const body = {
-    imageUrl: bannerForm.imageUrl,
-    title: bannerForm.title || null,
-    subtitle: bannerForm.subtitle || null,
-    linkUrl: bannerForm.linkUrl || null,
-    sortOrder: bannerForm.sortOrder,
-    enabled: bannerForm.enabled,
-  };
-  if (bannerForm.id) {
-    await http.patch(`/admin/home/banners/${bannerForm.id}`, body);
-  } else {
-    await http.post('/admin/home/banners', body);
-  }
-  ElMessage.success('已保存');
-  bannerVisible.value = false;
-  await load();
-}
-
-async function saveFeatured() {
-  const body = {
-    imageUrl: featuredForm.imageUrl,
-    title: featuredForm.title,
-    studentDisplayName: featuredForm.studentDisplayName,
-    sortOrder: featuredForm.sortOrder,
-    published: featuredForm.published,
-  };
-  if (featuredForm.id) {
-    await http.patch(`/admin/home/featured-artworks/${featuredForm.id}`, body);
-  } else {
-    await http.post('/admin/home/featured-artworks', body);
-  }
-  ElMessage.success('已保存');
-  featuredVisible.value = false;
-  await load();
-}
-
-async function saveCourse() {
-  const body = {
-    title: courseForm.title,
-    summary: courseForm.summary,
-    coverUrl: courseForm.coverUrl || null,
-    sortOrder: courseForm.sortOrder,
-    published: courseForm.published,
-  };
-  if (courseForm.id) {
-    await http.patch(`/admin/home/courses/${courseForm.id}`, body);
-  } else {
-    await http.post('/admin/home/courses', body);
-  }
-  ElMessage.success('已保存');
-  courseVisible.value = false;
-  await load();
-}
-
-async function remove(path: string, id: string) {
-  await http.delete(`${path}/${id}`);
-  ElMessage.success('已删除');
-  await load();
-}
-
-onMounted(load);
 </script>
 
 <style scoped>
-.table {
-  margin-top: 12px;
+.page-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.page-title {
+  margin-bottom: var(--space-2);
+}
+.page-hint {
+  margin: 0;
+  max-width: 40rem;
 }
 </style>
