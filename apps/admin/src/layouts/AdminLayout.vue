@@ -12,12 +12,7 @@
           <el-menu-item index="/settings">品牌 / LOGO / 水印</el-menu-item>
           <el-menu-item index="/templates">海报模板</el-menu-item>
           <el-menu-item index="/home">首页内容</el-menu-item>
-        </el-menu-item-group>
-        <el-menu-item-group title="更多">
-          <el-menu-item index="/preview" class="soon-item">
-            <span>公开首页预览</span>
-            <span class="soon-badge">即将开放</span>
-          </el-menu-item>
+          <el-menu-item index="/preview">公开首页预览</el-menu-item>
         </el-menu-item-group>
       </el-menu>
     </el-aside>
@@ -92,22 +87,5 @@ async function onLogout() {
   margin: 0 6px;
   color: var(--color-brand);
   font-weight: var(--font-body-emphasis-weight);
-}
-.aside :deep(.soon-item) {
-  color: var(--color-ink-tertiary) !important;
-  opacity: 0.78;
-}
-.aside :deep(.soon-item.is-active) {
-  color: var(--color-ink-secondary) !important;
-}
-.soon-badge {
-  margin-left: auto;
-  padding: 0 6px;
-  border-radius: var(--radius-tag);
-  background: var(--color-bg-subtle);
-  color: var(--color-ink-tertiary);
-  font-size: var(--font-badge-size);
-  line-height: var(--font-badge-line);
-  font-weight: var(--font-badge-weight);
 }
 </style>

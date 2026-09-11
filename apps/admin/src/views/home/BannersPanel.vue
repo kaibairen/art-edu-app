@@ -10,7 +10,9 @@
       type="error"
       :closable="false"
       class="tab-alert"
-    />
+    >
+      <el-button type="primary" size="small" @click="load">重试</el-button>
+    </el-alert>
     <el-empty v-else-if="!loading && banners.length === 0" description="还没有轮播。点「新建」加一张图。" />
     <el-table v-else :data="banners" v-loading="loading" stripe>
       <el-table-column label="图片" width="88">

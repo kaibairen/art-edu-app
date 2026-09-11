@@ -203,17 +203,14 @@ const layout = read('apps/admin/src/layouts/AdminLayout.vue');
 if (layout.includes('P0 本期') || layout.includes('非本期（P1）')) {
   fail('侧栏不得出现 P0/P1 工程分组文案');
 }
-if (!layout.includes('即将开放')) {
-  fail('未放行入口须标注「即将开放」');
-}
 if (!layout.includes('常用') && !layout.includes('更多')) {
   fail('侧栏分组应为「常用 / 更多」或隐藏分组');
 }
-if (!layout.includes('首页内容')) {
-  fail('侧栏须有「首页内容」');
+if (!layout.includes('首页内容') || !layout.includes('公开首页预览')) {
+  fail('侧栏须有可点的「首页内容」和「公开首页预览」');
 }
-if (/index="\/home"[^>]*(soon-item|即将开放)|首页内容[\s\S]{0,80}即将开放/.test(layout)) {
-  fail('侧栏「首页内容」已放行骨架，不得再标「即将开放」');
+if (layout.includes('即将开放') || layout.includes('soon-item') || layout.includes('soon-badge')) {
+  fail('A01：首页内容 / 公开首页预览已启用，侧栏不得再标「即将开放」或 soon 弱化');
 }
 const usersHint = users.match(/<p class="page-hint">([\s\S]*?)<\/p>/);
 if (usersHint && /classNames|className|F-011/.test(usersHint[1])) {
@@ -291,6 +288,45 @@ if (publicPreview.includes('settings?.') || publicPreview.includes('item.body') 
 }
 if (!publicPreview.includes('公开卡无点评') || !publicPreview.includes('课程无长文')) {
   fail('公开预览须写明硬约束：公开卡无点评；课程无长文');
+}
+const previewOrder = ['轮播', '课程介绍', '优秀作品'].map((label) => publicPreview.indexOf(`<h3>${label}</h3>`));
+if (previewOrder.some((i) => i < 0) || previewOrder[0] > previewOrder[1] || previewOrder[1] > previewOrder[2]) {
+  fail('E01：公开预览渲染序必须是 轮播 → 课程 → 优秀作品');
+}
+if (!featuredPanel.includes('从已有作品选') || !homeApi.includes('adminFeaturedFromArtworks')) {
+  fail('D01：优秀作品须有「从已有作品选」并对接 from-artworks');
+}
+if (!bannersPanel.includes('重试') || !coursesPanel.includes('重试') || !featuredPanel.includes('重试')) {
+  fail('F01/F02：管理端各 Tab 加载失败须可重试');
+}
+if ((publicPreview.match(/重试/g) || []).length < 3) {
+  fail('F02：公开预览三区都须可重试');
+}
+
+const flutterPublic = read('apps/mobile/lib/src/screens/public_home_screen.dart');
+const flutterApi = read('apps/mobile/lib/src/api_client.dart');
+const flutterLogin = read('apps/mobile/lib/src/screens/login_screen.dart');
+if (!flutterApi.includes('/public/home') || !flutterApi.includes('getPublicHome')) {
+  fail('Flutter 须对接 GET /public/home');
+}
+if (!flutterLogin.includes('先看看公开首页') || !flutterLogin.includes('PublicHomeScreen')) {
+  fail('登录页须能未登录进入公开首页');
+}
+if (!flutterPublic.includes('轮播') || !flutterPublic.includes('课程介绍') || !flutterPublic.includes('优秀作品')) {
+  fail('Flutter 公开首页须有三区块');
+}
+const flutterOrder = ['轮播', '课程介绍', '优秀作品'].map((label) => flutterPublic.indexOf(`title: '${label}'`));
+if (flutterOrder.some((i) => i < 0) || flutterOrder[0] > flutterOrder[1] || flutterOrder[1] > flutterOrder[2]) {
+  fail('E01：Flutter 公开首页渲染序必须是 轮播 → 课程 → 优秀作品');
+}
+if (flutterPublic.includes('commentText') || /json\[['"]body['"]\]|item\.body/.test(flutterPublic)) {
+  fail('Flutter 公开首页禁止点评 / 长文 body');
+}
+if (!flutterPublic.includes('公开卡无点评') || !flutterPublic.includes('课程无长文')) {
+  fail('Flutter 公开首页须写明硬约束');
+}
+if ((flutterPublic.match(/重试/g) || []).length < 1) {
+  fail('F02：Flutter 公开首页单区须可重试');
 }
 
 if (failures.length) {

@@ -15,8 +15,10 @@ import type {
   UpdateFeaturedArtworkRequest,
   UpdatePublishStatusRequest,
 } from '@art-edu/api-types';
-import { P1_HOME_PATHS } from '@art-edu/api-types';
+import * as ApiTypes from '@art-edu/api-types';
 import { http } from './http';
+
+const P1_HOME_PATHS = ApiTypes.P1_HOME_PATHS;
 
 async function listItems<T>(path: string): Promise<T[]> {
   const { data } = await http.get<HomeAdminList<T>>(path);

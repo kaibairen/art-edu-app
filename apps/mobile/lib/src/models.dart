@@ -137,3 +137,124 @@ const posterTemplates = [
   PosterTemplate('frame', '画框'),
   PosterTemplate('magazine', '杂志'),
 ];
+
+class PublicHomeBrand {
+  PublicHomeBrand({this.orgName, this.logoUrl});
+  final String? orgName;
+  final String? logoUrl;
+
+  factory PublicHomeBrand.fromJson(Map<String, dynamic> json) {
+    return PublicHomeBrand(
+      orgName: json['orgName'] as String?,
+      logoUrl: json['logoUrl'] as String?,
+    );
+  }
+}
+
+class PublicBanner {
+  PublicBanner({
+    required this.id,
+    required this.imageUrl,
+    this.title,
+    this.subtitle,
+    this.linkUrl,
+    this.sortOrder = 0,
+  });
+
+  final String id;
+  final String imageUrl;
+  final String? title;
+  final String? subtitle;
+  final String? linkUrl;
+  final int sortOrder;
+
+  factory PublicBanner.fromJson(Map<String, dynamic> json) {
+    return PublicBanner(
+      id: json['id'] as String,
+      imageUrl: json['imageUrl'] as String? ?? '',
+      title: json['title'] as String?,
+      subtitle: json['subtitle'] as String?,
+      linkUrl: json['linkUrl'] as String?,
+      sortOrder: json['sortOrder'] as int? ?? 0,
+    );
+  }
+}
+
+/// 公开优秀作品卡。仅四字段，禁止点评。
+class PublicFeaturedArtwork {
+  PublicFeaturedArtwork({
+    required this.id,
+    required this.imageUrl,
+    required this.title,
+    required this.studentDisplayName,
+  });
+
+  final String id;
+  final String imageUrl;
+  final String title;
+  final String studentDisplayName;
+
+  factory PublicFeaturedArtwork.fromJson(Map<String, dynamic> json) {
+    return PublicFeaturedArtwork(
+      id: json['id'] as String,
+      imageUrl: json['imageUrl'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      studentDisplayName: json['studentDisplayName'] as String? ?? '',
+    );
+  }
+}
+
+/// 公开课程。无长文 body。
+class PublicCourse {
+  PublicCourse({
+    required this.id,
+    required this.title,
+    required this.summary,
+    this.coverUrl,
+  });
+
+  final String id;
+  final String title;
+  final String summary;
+  final String? coverUrl;
+
+  factory PublicCourse.fromJson(Map<String, dynamic> json) {
+    return PublicCourse(
+      id: json['id'] as String,
+      title: json['title'] as String? ?? '',
+      summary: json['summary'] as String? ?? '',
+      coverUrl: json['coverUrl'] as String?,
+    );
+  }
+}
+
+class PublicHome {
+  PublicHome({
+    required this.brand,
+    required this.banners,
+    required this.featuredArtworks,
+    required this.courses,
+  });
+
+  final PublicHomeBrand brand;
+  final List<PublicBanner> banners;
+  final List<PublicFeaturedArtwork> featuredArtworks;
+  final List<PublicCourse> courses;
+
+  factory PublicHome.fromJson(Map<String, dynamic> json) {
+    return PublicHome(
+      brand: PublicHomeBrand.fromJson(
+        (json['brand'] as Map<String, dynamic>?) ?? <String, dynamic>{},
+      ),
+      banners: (json['banners'] as List<dynamic>? ?? [])
+          .map((e) => PublicBanner.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      featuredArtworks: (json['featuredArtworks'] as List<dynamic>? ?? [])
+          .map((e) => PublicFeaturedArtwork.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      courses: (json['courses'] as List<dynamic>? ?? [])
+          .map((e) => PublicCourse.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}

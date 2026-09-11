@@ -11,7 +11,9 @@
       type="error"
       :closable="false"
       class="tab-alert"
-    />
+    >
+      <el-button type="primary" size="small" @click="load">重试</el-button>
+    </el-alert>
     <el-empty
       v-else-if="!loading && courses.length === 0"
       description="还没有课程介绍。标题和摘要必填，封面可以以后再补。"
@@ -76,7 +78,9 @@
 import { onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { AdminCourse, CreateCourseRequest, UpdateCourseRequest } from '@art-edu/api-types';
-import { COURSE_SUMMARY_MAX_LENGTH } from '@art-edu/api-types';
+import * as ApiTypes from '@art-edu/api-types';
+
+const COURSE_SUMMARY_MAX_LENGTH = ApiTypes.COURSE_SUMMARY_MAX_LENGTH;
 import { errorMessage } from '../../api/errors';
 import {
   createCourse,

@@ -3,7 +3,7 @@
     <div class="tab-head">
       <h3 class="tab-title">优秀作品公开</h3>
       <div class="tab-actions">
-        <el-button @click="openFromArtworks">从已有作品挑选</el-button>
+        <el-button @click="openFromArtworks">从已有作品选</el-button>
         <el-button type="primary" @click="openCreate">手动新建</el-button>
       </div>
     </div>
@@ -14,10 +14,12 @@
       type="error"
       :closable="false"
       class="tab-alert"
-    />
+    >
+      <el-button type="primary" size="small" @click="load">重试</el-button>
+    </el-alert>
     <el-empty
       v-else-if="!loading && items.length === 0"
-      description="还没有公开作品。可以从已有作品挑选，或手动填写图片、标题和学员称呼。"
+      description="还没有公开作品。可以从已有作品选，或手动填写图片、标题和学员称呼。"
     />
     <el-table v-else :data="items" v-loading="loading" stripe>
       <el-table-column label="图片" width="88">

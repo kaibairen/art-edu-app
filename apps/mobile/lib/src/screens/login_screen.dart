@@ -4,6 +4,7 @@ import '../api_client.dart';
 import '../app.dart';
 import '../models.dart';
 import '../tokens.dart';
+import 'public_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -69,6 +70,14 @@ class _LoginScreenState extends State<LoginScreen> {
             FilledButton(
               onPressed: loading ? null : _submit,
               child: Text(loading ? '登录中…' : '登录'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => PublicHomeScreen(api: widget.api),
+                ));
+              },
+              child: const Text('先看看公开首页'),
             ),
             if (error != null) ...[
               const SizedBox(height: ArtEduSpace.s12),
