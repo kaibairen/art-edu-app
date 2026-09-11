@@ -10,10 +10,12 @@ import {
 import {
   POSTER_TEMPLATE_KEYS,
   STUDENT_STATUSES,
+  USER_STATUSES,
   WATERMARK_POSITIONS,
 } from './dto';
 import { mapErrorBody } from './errors';
 import {
+  EXAMPLE_ACCOUNT,
   EXAMPLE_ACCOUNT_DISABLED,
   EXAMPLE_ACCOUNT_DISABLED_ISSUED_TOKEN,
   EXAMPLE_CONFLICT_BINDING,
@@ -32,8 +34,12 @@ assert.ok(API_ERROR_CODES.includes('ACCOUNT_DISABLED'));
 assert.ok(API_ERROR_CODES.includes('LOGO_NOT_CONFIGURED'));
 assert.deepEqual(POSTER_TEMPLATE_KEYS, ['simple', 'frame', 'magazine']);
 assert.deepEqual(STUDENT_STATUSES, ['active', 'archived']);
+assert.deepEqual(USER_STATUSES, ['active', 'disabled']);
 assert.ok(WATERMARK_POSITIONS.includes('bottomRight'));
 assert.equal(EXAMPLE_STUDENT.status, 'active');
+assert.equal(EXAMPLE_ACCOUNT.displayName, '林老师');
+assert.equal(EXAMPLE_ACCOUNT.status, 'active');
+assert.deepEqual(EXAMPLE_ACCOUNT.classNames, ['创意水彩班']);
 
 assert.notEqual(
   EXAMPLE_POSTER_PREVIEW.previewUrl,
