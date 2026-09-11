@@ -41,6 +41,7 @@ apps/admin        管理端
 apps/mobile       Flutter 家长/教师
 packages/shared   角色与公共类型
 docs/adr          架构决策记录
+docs/本机Docker调试一页纸.md
 docker-compose.yml
 .env.example
 ```
