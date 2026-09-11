@@ -210,7 +210,7 @@ if (!layout.includes('首页内容') || !layout.includes('公开首页预览')) 
   fail('侧栏须有可点的「首页内容」和「公开首页预览」');
 }
 if (layout.includes('即将开放') || layout.includes('soon-item') || layout.includes('soon-badge')) {
-  fail('A01：首页内容 / 公开首页预览已启用，侧栏不得再标「即将开放」或 soon 弱化');
+  fail('P1-PREP-01 / A01：首页内容 / 公开首页预览已启用，侧栏不得再标「即将开放」或 soon 弱化');
 }
 const usersHint = users.match(/<p class="page-hint">([\s\S]*?)<\/p>/);
 if (usersHint && /classNames|className|F-011/.test(usersHint[1])) {
@@ -291,10 +291,10 @@ if (!publicPreview.includes('公开卡无点评') || !publicPreview.includes('�
 }
 const previewOrder = ['轮播', '课程介绍', '优秀作品'].map((label) => publicPreview.indexOf(`<h3>${label}</h3>`));
 if (previewOrder.some((i) => i < 0) || previewOrder[0] > previewOrder[1] || previewOrder[1] > previewOrder[2]) {
-  fail('E01：公开预览渲染序必须是 轮播 → 课程 → 优秀作品');
+  fail('P1-PREP-02 / E01：公开预览渲染序必须是 轮播 → 课程 → 优秀作品');
 }
-if (!featuredPanel.includes('从已有作品选') || !homeApi.includes('adminFeaturedFromArtworks')) {
-  fail('D01：优秀作品须有「从已有作品选」并对接 from-artworks');
+if (!/从(已有)?作品选/.test(featuredPanel) || !homeApi.includes('adminFeaturedFromArtworks')) {
+  fail('P1-PREP-04 / D01：优秀作品须有「从作品选」并对接 from-artworks');
 }
 if (!bannersPanel.includes('重试') || !coursesPanel.includes('重试') || !featuredPanel.includes('重试')) {
   fail('F01/F02：管理端各 Tab 加载失败须可重试');
